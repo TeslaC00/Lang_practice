@@ -85,6 +85,24 @@ abstract class Vocab extends HiveObject {
 
   @override
   int get hashCode => nextReview.hashCode;
+
+  Map<String, dynamic> toJson();
+
+  static Vocab fromJson(Map<String, dynamic> json) {
+    final type = VocabType.values.firstWhere(
+      (type) => type.name == json['type'],
+    );
+    switch (type) {
+      case VocabType.word:
+        return WordVocab.fromJson(json);
+      case VocabType.time:
+        return TimeVocab.fromJson(json);
+      case VocabType.sentence:
+        return SentenceVocab.fromJson(json);
+      case VocabType.verb:
+        return VerbVocab.fromJson(json);
+    }
+  }
 }
 
 // Private helper widget, kept in the main file as it's used across different vocab forms.

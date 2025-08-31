@@ -94,5 +94,36 @@ class WordVocab extends Vocab {
 
   @override
   int get hashCode =>
-      super.hashCode ^ word.hashCode ^ readings.hashCode ^ meanings.hashCode;
+      super.hashCode ^
+      word.hashCode ^
+      readings.fold(0, (prev, item) => prev ^ item.hashCode) ^
+      meanings.fold(0, (prev, item) => prev ^ item.hashCode);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.name,
+      'level': level,
+      'nextReview': nextReview.toIso8601String(),
+      'word': word,
+      'readings': readings,
+      'meanings': meanings,
+    };
+  }
+
+  factory WordVocab.fromJson(Map<String, dynamic> json) {
+    if (json['type'] != VocabType.word.name) {
+      throw ArgumentError(
+        'Invalid type for WordVocab.fromJson: ${json['type']}',
+      );
+    }
+    final vocab = WordVocab(
+      word: json['word'] as String,
+      readings: List<String>.from(json['readings'] as List<dynamic>),
+      meanings: List<String>.from(json['meanings'] as List<dynamic>),
+    );
+    vocab.level = json['level'] as int;
+    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    return vocab;
+  }
 }

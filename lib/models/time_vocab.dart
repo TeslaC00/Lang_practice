@@ -122,4 +122,34 @@ class TimeVocab extends Vocab {
       reading.hashCode ^
       timeValue.hour.hashCode ^
       timeValue.minute.hashCode;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.name,
+      'level': level,
+      'nextReview': nextReview.toIso8601String(),
+      'timeWord': timeWord,
+      'reading': reading,
+      'timeValue': _formatTimeOfDay(timeValue), // Store as HH:mm string
+    };
+  }
+
+  factory TimeVocab.fromJson(Map<String, dynamic> json) {
+    if (json['type'] != VocabType.time.name) {
+      throw ArgumentError(
+        'Invalid type for TimeVocab.fromJson: ${json['type']}',
+      );
+    }
+    final vocab = TimeVocab(
+      timeWord: json['timeWord'] as String,
+      reading: json['reading'] as String,
+      timeValue: _parseTimeOfDay(
+        json['timeValue'] as String,
+      ), // Parse from HH:mm string
+    );
+    vocab.level = json['level'] as int;
+    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    return vocab;
+  }
 }
