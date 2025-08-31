@@ -30,6 +30,20 @@ class VerbForm extends HiveObject {
     return '$verbWord ($reading) - $meaning';
   }
 
+  // ToJson method
+  Map<String, dynamic> toJson() => {
+    'verbWord': verbWord,
+    'reading': reading,
+    'meaning': meaning,
+  };
+
+  // FromJson factory constructor
+  factory VerbForm.fromJson(Map<String, dynamic> json) => VerbForm(
+    verbWord: json['verbWord'] as String,
+    reading: json['reading'] as String,
+    meaning: json['meaning'] as String,
+  );
+
   @override
   String toString() {
     return 'VerbForm{verbWord: $verbWord, reading: $reading, meaning: $meaning}';

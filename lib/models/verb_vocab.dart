@@ -104,4 +104,35 @@ class VerbVocab extends Vocab {
 
   @override
   int get hashCode => super.hashCode ^ plainVerb.hashCode ^ verbForms.hashCode;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.name,
+      'level': level,
+      'nextReview': nextReview.toIso8601String(),
+      'plainVerb': plainVerb.toJson(),
+      // Assumes VerbForm has toJson()
+      'verbForms': verbForms.map((key, value) => MapEntry(key, value.toJson())),
+      // Assumes VerbForm has toJson()
+    };
+  }
+
+  factory VerbVocab.fromJson(Map<String, dynamic> json) {
+    if (json['type'] != VocabType.verb.name) {
+      throw ArgumentError(
+        'Invalid type for VerbVocab.fromJson: ${json['type']}',
+      );
+    }
+    final vocab = VerbVocab(
+      plainVerb: VerbForm.fromJson(json['plainVerb'] as Map<String, dynamic>),
+      verbForms: (json['verbForms'] as Map<String, dynamic>).map(
+        (key, value) =>
+            MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
+      ),
+    );
+    vocab.level = json['level'] as int;
+    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    return vocab;
+  }
 }

@@ -69,4 +69,30 @@ class SentenceVocab extends Vocab {
 
   @override
   int get hashCode => super.hashCode ^ sentence.hashCode ^ answer.hashCode;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.name,
+      'level': level,
+      'nextReview': nextReview.toIso8601String(),
+      'sentence': sentence,
+      'answer': answer,
+    };
+  }
+
+  factory SentenceVocab.fromJson(Map<String, dynamic> json) {
+    if (json['type'] != VocabType.sentence.name) {
+      throw ArgumentError(
+        'Invalid type for SentenceVocab.fromJson: ${json['type']}',
+      );
+    }
+    final vocab = SentenceVocab(
+      sentence: json['sentence'] as String,
+      answer: json['answer'] as String,
+    );
+    vocab.level = json['level'] as int;
+    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    return vocab;
+  }
 }
