@@ -133,6 +133,17 @@ class SentenceVocab extends Vocab {
   }
 
   @override
+  Future<void> add() async {
+    LoggerService().d(
+      'SentenceVocab.add called. Old: "$sentence" - "$answer". New: "${_sentenceController.text}" - "${_answerController.text}"',
+    );
+    sentence = _sentenceController.text;
+    answer = _answerController.text;
+    await super.addToBox();
+    LoggerService().i('SentenceVocab added: "$sentence"');
+  }
+
+  @override
   Future<void> save() async {
     LoggerService().d(
       'SentenceVocab.save called. Old: "$sentence" - "$answer". New: "${_sentenceController.text}" - "${_answerController.text}"',

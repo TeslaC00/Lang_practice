@@ -195,6 +195,17 @@ class TimeVocab extends Vocab {
   String displaySummary() {
     return 'Time: $timeWord ($reading) at $timeString\n${super.displaySummary()}';
   }
+
+  @override
+  Future<void> add() async {
+    LoggerService().d(
+      'Adding TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}',
+    );
+    timeWord = _timeWordController.text;
+    reading = _readingController.text;
+    timeString = _timeValueController.text;
+    await super.addToBox();
+    LoggerService().i('TimeVocab "$timeWord" added.');
   }
 
   @override

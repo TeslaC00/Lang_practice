@@ -208,6 +208,20 @@ class VerbVocab extends Vocab {
   }
 
   @override
+  Future<void> add() async {
+    LoggerService().d(
+      'VerbVocab add: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning: "${_plainVerbMeaningController.text}"',
+    );
+    plainVerb.verbWord = _plainVerbWordController.text;
+    plainVerb.reading = _plainVerbReadingController.text;
+    plainVerb.meaning = _plainVerbMeaningController.text;
+    // TODO: Implement saving logic for verbForms if they are made editable.
+    // This might involve parsing new/updated forms from controllers.
+    await super.addToBox();
+    LoggerService().i('VerbVocab add: Added to box.');
+  }
+
+  @override
   Future<void> save() async {
     LoggerService().d(
       'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning: "${_plainVerbMeaningController.text}"',
@@ -280,48 +294,3 @@ class VerbVocab extends Vocab {
     return vocab;
   }
 }
-
-// Assuming VerbForm class is defined elsewhere and has toJson/fromJson
-// For example:
-/*
-class VerbForm {
-  String verbWord;
-  String reading;
-  String meaning;
-  String formName; // e.g., "Plain", "Past Polite", "Te-form"
-
-  VerbForm({required this.verbWord, required this.reading, required this.meaning, required this.formName});
-
-  String displaySummary() => '$formName: $verbWord ($reading) - $meaning';
-  String displayTitle() => verbWord;
-  String displaySubtext() => '$reading - $meaning';
-
-  Map<String, dynamic> toJson() => {
-    'verbWord': verbWord,
-    'reading': reading,
-    'meaning': meaning,
-    'formName': formName,
-  };
-
-  factory VerbForm.fromJson(Map<String, dynamic> json) => VerbForm(
-    verbWord: json['verbWord'] as String,
-    reading: json['reading'] as String,
-    meaning: json['meaning'] as String,
-    formName: json['formName'] as String,
-  );
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is VerbForm &&
-          runtimeType == other.runtimeType &&
-          verbWord == other.verbWord &&
-          reading == other.reading &&
-          meaning == other.meaning &&
-          formName == other.formName;
-
-  @override
-  int get hashCode =>
-      verbWord.hashCode ^ reading.hashCode ^ meaning.hashCode ^ formName.hashCode;
-}
-*/
