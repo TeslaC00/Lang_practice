@@ -1,6 +1,6 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 7)
+@HiveType(typeId: 6)
 class VerbVocab extends Vocab {
   @HiveField(4)
   VerbForm plainVerb;

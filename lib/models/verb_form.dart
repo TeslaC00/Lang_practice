@@ -1,6 +1,6 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 6)
+@HiveType(typeId: 5)
 class VerbForm extends HiveObject {
   @HiveField(0)
   String verbWord;
