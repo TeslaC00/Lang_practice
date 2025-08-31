@@ -117,7 +117,7 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
     return TimeVocab(
       timeWord: fields[4] as String,
       reading: fields[5] as String,
-      timeValue: fields[6] as TimeOfDay,
+      timeString: fields[6] as String,
     )
       ..type = fields[1] as VocabType
       ..level = fields[2] as int
@@ -133,7 +133,7 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
       ..writeByte(5)
       ..write(obj.reading)
       ..writeByte(6)
-      ..write(obj.timeValue)
+      ..write(obj.timeString)
       ..writeByte(1)
       ..write(obj.type)
       ..writeByte(2)

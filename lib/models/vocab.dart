@@ -54,7 +54,7 @@ abstract class Vocab extends HiveObject {
       case VocabType.word:
         return WordVocab(word: '', meanings: [], readings: []);
       case VocabType.time:
-        return TimeVocab(reading: '', timeValue: TimeOfDay.now(), timeWord: '');
+        return TimeVocab(reading: '', timeString: '', timeWord: '');
       case VocabType.sentence:
         return SentenceVocab(sentence: '', answer: '');
       case VocabType.verb:
