@@ -4,14 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/screens/home_screen.dart';
+import 'package:lang_practice/services/logger_service.dart'; // Import logger service
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LoggerService().init(); // Initialize logger service
+
   final dir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(dir.path);
   Hive.registerAdapter(VocabTypeAdapter());
   await Hive.openBox<Vocab>('vocabBox');
+
+  LoggerService().i("Application Started"); // Example usage
+
   runApp(const App());
 }
 
@@ -22,6 +28,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final seed = const Color(0xFF5B5BD6);
+    LoggerService().d("App widget building"); // Example usage
     return MaterialApp(
       title: 'Lang Practice',
       theme: ThemeData(
@@ -74,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   void _incrementCounter() {
+    LoggerService().i("Incrementing counter"); // Example usage
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
