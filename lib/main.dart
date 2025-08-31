@@ -10,23 +10,33 @@ import 'package:lang_practice/services/logger_service.dart'; // Import logger se
 import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await LoggerService().init(); // Initialize logger service
-
-  final dir = await getApplicationDocumentsDirectory();
-  await Hive.initFlutter(dir.path);
-  Hive.registerAdapter(VocabTypeAdapter());
-  await Hive.openBox<Vocab>('vocabBox');
-
-  LoggerService().i("Application Started"); // Example usage
-
-  FlutterError.onError = (details) {
-    LoggerService().e("FlutterError", details.exception, details.stack);
-  };
-
   runZonedGuarded(
-    () => runApp(const App()),
-    (error, stack) => LoggerService().e("uncaught error", error, stack),
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      await LoggerService().init(); // Initialize logger service
+
+      final dir = await getApplicationDocumentsDirectory();
+      await Hive.initFlutter(dir.path);
+      Hive.registerAdapter(VocabTypeAdapter());
+      Hive.registerAdapter(WordVocabAdapter());
+      Hive.registerAdapter(TimeVocabAdapter());
+      Hive.registerAdapter(SentenceVocabAdapter());
+      Hive.registerAdapter(VerbFormAdapter());
+      Hive.registerAdapter(VerbVocabAdapter());
+      await Hive.openBox<Vocab>('vocabBox');
+
+      LoggerService().i("Application Started"); // Example usage
+
+      FlutterError.onError = (details) {
+        LoggerService().e("FlutterError", details.exception, details.stack);
+      };
+
+      runApp(const App());
+    },
+    (error, stack) {
+      LoggerService().e("uncaught error", error, stack);
+    },
   );
 }
 
