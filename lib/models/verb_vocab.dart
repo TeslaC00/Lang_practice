@@ -286,8 +286,10 @@ class VerbVocab extends Vocab {
             MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
       ),
     );
-    vocab.level = json['level'] as int;
-    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    vocab.level = (json['level'] as int?) ?? 0;
+    vocab.nextReview = json['nextReview'] != null
+        ? DateTime.parse(json['nextReview'] as String)
+        : DateTime.now();
     LoggerService().i(
       'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord}',
     );
