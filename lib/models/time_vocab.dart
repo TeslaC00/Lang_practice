@@ -64,7 +64,6 @@ class TimeVocab extends Vocab {
         print('Error parsing TimeOfDay string "$formattedString": $e');
       }
     }
-    // Return a default or throw an error
     return const TimeOfDay(hour: 0, minute: 0); // Default fallback
   }
 
@@ -112,9 +111,9 @@ class TimeVocab extends Vocab {
   @override
   List<Widget> buildFormFields(StateSetter setState) {
     return [
-      _LabeledField('Time Word (e.g., 7:30 AM)', _timeWordController),
+      _LabeledField('Time Word (e.g., 7:30 AM, 今)', _timeWordController),
       const SizedBox(height: 10),
-      _LabeledField('Reading (e.g., しちじはん)', _readingController),
+      _LabeledField('Reading (e.g., しちじはん, いま)', _readingController),
       const SizedBox(height: 10),
       _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
       const SizedBox(height: 10),
@@ -200,13 +199,13 @@ class TimeVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    String formattedTime = _formatTimeOfDay(_currentTimeOfDay);
+    String formattedTime = _formatTimeOfDay(timeValue);
     return '$reading at $formattedTime';
   }
 
   @override
   String displaySummary() {
-    String formattedTime = _formatTimeOfDay(_currentTimeOfDay);
+    String formattedTime = _formatTimeOfDay(timeValue);
     return 'Time: $timeWord ($reading) at $formattedTime\n${super.displaySummary()}';
   }
 
@@ -214,21 +213,14 @@ class TimeVocab extends Vocab {
   Future<void> save() async {
     timeWord = _timeWordController.text;
     reading = _readingController.text;
-    try {
-      timeValue = _parseTimeOfDay(_timeValueController.text);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing timeValue from controller: $e');
-      }
-      // Optionally handle error, e.g., by not changing timeValue
-    }
+    timeValue = _parseTimeOfDay(_timeValueController.text);
     await super.save();
   }
 
   @override
   String toString() {
     return 'TimeVocab{timeWord: $timeWord, reading: $reading, '
-        'timeValue: ${_formatTimeOfDay(_currentTimeOfDay)}, type: $type, level: $level, nextReview: $nextReview}';
+        'timeValue: ${_formatTimeOfDay(timeValue)}, type: $type, level: $level, nextReview: $nextReview}';
   }
 
   @override
@@ -239,7 +231,6 @@ class TimeVocab extends Vocab {
           runtimeType == other.runtimeType &&
           timeWord == other.timeWord &&
           reading == other.reading &&
-          // Compare hour and minute for TimeOfDay equivalence
           timeValue.hour == other.timeValue.hour &&
           timeValue.minute == other.timeValue.minute;
 

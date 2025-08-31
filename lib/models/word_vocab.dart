@@ -66,6 +66,10 @@ class WordVocab extends Vocab {
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
+    // This assumes _LabeledField is available in the scope.
+    // If _LabeledField is defined in Vocab, WordVocab, or imported, this will work.
+    // Example: Widget _LabeledField(String label, TextEditingController controller) => Column(...);
+
     return [
       _LabeledField('Word (kanji/word)', _wordController),
       const SizedBox(height: 10),
@@ -159,18 +163,18 @@ class WordVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    String readingSub = readings.isNotEmpty ? readings.first : 'N/A';
-    String meaningSub = meanings.isNotEmpty ? meanings.first : 'N/A';
-    if (readingSub == 'N/A' && meaningSub == 'N/A') return '';
-    if (readingSub == 'N/A') return meaningSub;
-    if (meaningSub == 'N/A') return readingSub;
+    String readingSub = readings.join(', ');
+    String meaningSub = meanings.join(', ');
+    if (readingSub.isEmpty && meaningSub.isEmpty) return '';
+    if (readingSub.isEmpty) return meaningSub;
+    if (meaningSub.isEmpty) return readingSub;
     return '$readingSub - $meaningSub';
   }
 
   @override
   String displaySummary() {
-    String readingSummary = readings.isNotEmpty ? readings.first : 'N/A';
-    String meaningSummary = meanings.isNotEmpty ? meanings.first : 'N/A';
+    String readingSummary = readings.isNotEmpty ? readings.join(', ') : 'N/A';
+    String meaningSummary = meanings.isNotEmpty ? meanings.join(', ') : 'N/A';
     return 'Word: $word (Reading: $readingSummary, Meaning: $meaningSummary)\n${super.displaySummary()}';
   }
 
