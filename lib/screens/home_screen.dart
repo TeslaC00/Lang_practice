@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lang_practice/models/vocab.dart';
-// import 'package:lang_practice/screens/review_screen.dart';
+import 'package:lang_practice/screens/review_screen.dart';
 import 'package:lang_practice/screens/stats_screen.dart';
 import 'package:lang_practice/screens/vocab_list_screen.dart';
 
@@ -44,14 +44,14 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            // const SizedBox(height: 12),
-            // FilledButton(
-            //   onPressed: () => Navigator.push(
-            //     context,
-            //     MaterialPageRoute(builder: (_) => const ReviewScreen()),
-            //   ),
-            //   child: const Text('Start Review'),
-            // ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReviewScreen()),
+              ),
+              child: const Text('Start Review'),
+            ),
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: () => Navigator.push(
