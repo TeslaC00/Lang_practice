@@ -45,7 +45,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   void dispose() {
-    _current!.dispose();
+    if (_current != null) _current!.dispose();
     super.dispose();
   }
 
