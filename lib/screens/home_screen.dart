@@ -7,6 +7,7 @@ import 'package:lang_practice/screens/review_screen.dart';
 import 'package:lang_practice/screens/stats_screen.dart';
 import 'package:lang_practice/screens/vocab_list_screen.dart';
 import 'package:lang_practice/services/data_io.dart';
+import 'package:lang_practice/services/logger_service.dart';
 
 import 'add_edit_vocab_screen.dart';
 
@@ -84,6 +85,10 @@ class HomeScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async => await exportData(context),
                   child: Text("Export data"),
+                ),
+                ElevatedButton(
+                  onPressed: () async => LoggerService().shareLogs(),
+                  child: Text("Send Logs"),
                 ),
                 ElevatedButton(
                   onPressed: () async => await importData(context),
