@@ -12,6 +12,11 @@ class WordVocab extends Vocab {
   late TextEditingController _wordController;
   late TextEditingController _meaningsController;
   late TextEditingController _readingsController;
+  late TextEditingController _readingAnswerController;
+  late TextEditingController _meaningAnswerController;
+
+  String _readingFeedback = ''; // Initialized
+  String _meaningFeedback = ''; // Initialized
 
   WordVocab({
     required this.word,
@@ -21,6 +26,42 @@ class WordVocab extends Vocab {
     _wordController = TextEditingController(text: word);
     _meaningsController = TextEditingController(text: meanings.join(', '));
     _readingsController = TextEditingController(text: readings.join(', '));
+    _readingAnswerController = TextEditingController();
+    _meaningAnswerController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _wordController.dispose();
+    _meaningsController.dispose();
+    _readingsController.dispose();
+    _readingAnswerController.dispose();
+    _meaningAnswerController.dispose();
+    // if Vocab has a dispose, call super.dispose();
+  }
+
+  // Helper method for form fields, assuming _LabeledField is defined elsewhere (e.g. in vocab.dart)
+  // Widget _LabeledField(String label, TextEditingController controller) { ... }
+
+  // Helper method for review logic
+  void _submitAnswerLogic(
+    TextEditingController controller,
+    List<String> correctAnswers,
+    Function(String) feedbackSetter,
+  ) {
+    final userAnswer = controller.text.trim().toLowerCase();
+    if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
+      feedbackSetter("Correct!");
+      // Potentially advance SRS, clear controller, etc.
+      SRS.markCorrect(this);
+    } else {
+      if (userAnswer.isEmpty) {
+        feedbackSetter("Please enter an answer.");
+      } else {
+        feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
+        SRS.markWrong(this);
+      }
+    }
   }
 
   @override
@@ -35,6 +76,79 @@ class WordVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Meanings/English (comma separated)', _meaningsController),
       const SizedBox(height: 10),
+    ];
+  }
+
+  @override
+  List<Widget> buildReviewFields(StateSetter setState) {
+    return [
+      Text(
+        word,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _readingAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Give Reading',
+          border: OutlineInputBorder(),
+          hintText: 'Enter reading in hiragana/katakana',
+        ),
+        onSubmitted: (_) => _submitAnswerLogic(
+          _readingAnswerController,
+          readings,
+          (f) => setState(() => _readingFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitAnswerLogic(
+          _readingAnswerController,
+          readings,
+          (f) => setState(() => _readingFeedback = f),
+        ),
+        child: const Text("Check Reading"),
+      ),
+      const SizedBox(height: 5),
+      if (_readingFeedback.isNotEmpty)
+        Text(
+          _readingFeedback,
+          style: TextStyle(
+            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _meaningAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Give Meaning',
+          border: OutlineInputBorder(),
+          hintText: 'Enter meaning in English',
+        ),
+        onSubmitted: (_) => _submitAnswerLogic(
+          _meaningAnswerController,
+          meanings,
+          (f) => setState(() => _meaningFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitAnswerLogic(
+          _meaningAnswerController,
+          meanings,
+          (f) => setState(() => _meaningFeedback = f),
+        ),
+        child: const Text("Check Meaning"),
+      ),
+      const SizedBox(height: 5),
+      if (_meaningFeedback.isNotEmpty)
+        Text(
+          _meaningFeedback,
+          style: TextStyle(
+            color: _meaningFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
     ];
   }
 

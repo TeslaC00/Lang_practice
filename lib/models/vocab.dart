@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
+import '../services/srs.dart';
+
 part 'vocab.g.dart';
 
 part 'word_vocab.dart';
@@ -58,6 +60,10 @@ abstract class Vocab extends HiveObject {
   }
 
   List<Widget> buildFormFields(StateSetter setState);
+
+  List<Widget> buildReviewFields(StateSetter setState);
+
+  void dispose();
 
   String displayTitle() {
     return type.name;

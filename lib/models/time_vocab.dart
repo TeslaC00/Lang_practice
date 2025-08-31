@@ -11,7 +11,13 @@ class TimeVocab extends Vocab {
 
   late TextEditingController _timeWordController;
   late TextEditingController _readingController;
-  late TextEditingController _timeValueController;
+  late TextEditingController _timeValueController; // For form input
+
+  late TextEditingController _readingAnswerController;
+  late TextEditingController _timeValueAnswerController; // For review input
+
+  String _readingFeedback = '';
+  String _timeValueFeedback = '';
 
   TimeVocab({
     required this.timeWord,
@@ -23,6 +29,18 @@ class TimeVocab extends Vocab {
     _timeValueController = TextEditingController(
       text: _formatTimeOfDay(timeValue),
     );
+    _readingAnswerController = TextEditingController();
+    _timeValueAnswerController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _timeWordController.dispose();
+    _readingController.dispose();
+    _timeValueController.dispose();
+    _readingAnswerController.dispose();
+    _timeValueAnswerController.dispose();
+    // if Vocab has a dispose, call super.dispose();
   }
 
   static String _formatTimeOfDay(TimeOfDay tod) {
@@ -50,8 +68,46 @@ class TimeVocab extends Vocab {
     return const TimeOfDay(hour: 0, minute: 0); // Default fallback
   }
 
-  TimeOfDay get _currentTimeOfDay =>
-      TimeOfDay(hour: timeValue.hour, minute: timeValue.minute);
+  // Helper method for review logic (adapted from WordVocab)
+  void _submitAnswerLogic(
+    TextEditingController controller,
+    List<String> correctAnswers,
+    Function(String) feedbackSetter,
+  ) {
+    final userAnswer = controller.text.trim().toLowerCase();
+    if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
+      feedbackSetter("Correct!");
+      SRS.markCorrect(this);
+    } else {
+      if (userAnswer.isEmpty) {
+        feedbackSetter("Please enter an answer.");
+      } else {
+        feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
+        SRS.markWrong(this);
+      }
+    }
+  }
+
+  void _submitTimeAnswerLogic(
+    TextEditingController controller,
+    TimeOfDay correctTimeValue,
+    Function(String) feedbackSetter,
+  ) {
+    final userAnswerString = controller.text.trim();
+    try {
+      final userAnswerTime = _parseTimeOfDay(userAnswerString);
+      if (userAnswerTime.hour == correctTimeValue.hour &&
+          userAnswerTime.minute == correctTimeValue.minute) {
+        feedbackSetter("Correct!");
+      } else {
+        feedbackSetter(
+          "Incorrect. Correct: ${_formatTimeOfDay(correctTimeValue)}",
+        );
+      }
+    } catch (e) {
+      feedbackSetter("Invalid format. Please use HH:MM.");
+    }
+  }
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
@@ -62,6 +118,78 @@ class TimeVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
       const SizedBox(height: 10),
+    ];
+  }
+
+  @override
+  List<Widget> buildReviewFields(StateSetter setState) {
+    return [
+      Text(
+        timeWord,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _readingAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Give Reading',
+          border: OutlineInputBorder(),
+          hintText: 'Enter reading in hiragana/katakana',
+        ),
+        onSubmitted: (_) => _submitAnswerLogic(
+          _readingAnswerController,
+          [reading], // reading is a single string
+          (f) => setState(() => _readingFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitAnswerLogic(_readingAnswerController, [
+          reading,
+        ], (f) => setState(() => _readingFeedback = f)),
+        child: const Text("Check Reading"),
+      ),
+      const SizedBox(height: 5),
+      if (_readingFeedback.isNotEmpty)
+        Text(
+          _readingFeedback,
+          style: TextStyle(
+            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _timeValueAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Give Time (HH:MM)',
+          border: OutlineInputBorder(),
+          hintText: 'Enter time e.g., 07:30',
+        ),
+        keyboardType: TextInputType.datetime,
+        onSubmitted: (_) => _submitTimeAnswerLogic(
+          _timeValueAnswerController,
+          timeValue,
+          (f) => setState(() => _timeValueFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitTimeAnswerLogic(
+          _timeValueAnswerController,
+          timeValue,
+          (f) => setState(() => _timeValueFeedback = f),
+        ),
+        child: const Text("Check Time Value"),
+      ),
+      const SizedBox(height: 5),
+      if (_timeValueFeedback.isNotEmpty)
+        Text(
+          _timeValueFeedback,
+          style: TextStyle(
+            color: _timeValueFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
     ];
   }
 

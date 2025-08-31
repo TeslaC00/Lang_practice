@@ -11,6 +11,13 @@ class VerbVocab extends Vocab {
   late TextEditingController _plainVerbReadingController;
   late TextEditingController _plainVerbMeaningController;
 
+  // Review screen controllers
+  late TextEditingController _readingAnswerController;
+  late TextEditingController _meaningAnswerController;
+
+  String _readingFeedback = '';
+  String _meaningFeedback = '';
+
   // TODO: Add controllers for verbForms if they are to be made editable in this form
   VerbVocab({required this.plainVerb, required this.verbForms})
     : super(type: VocabType.verb) {
@@ -21,6 +28,37 @@ class VerbVocab extends Vocab {
     _plainVerbMeaningController = TextEditingController(
       text: plainVerb.meaning,
     );
+    _readingAnswerController = TextEditingController();
+    _meaningAnswerController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _plainVerbWordController.dispose();
+    _plainVerbReadingController.dispose();
+    _plainVerbMeaningController.dispose();
+    _readingAnswerController.dispose();
+    _meaningAnswerController.dispose();
+    // if Vocab has a dispose, call super.dispose();
+  }
+
+  void _submitReviewAnswerLogic(
+    TextEditingController controller,
+    String correctAnswer,
+    Function(String) feedbackSetter,
+  ) {
+    final userAnswer = controller.text.trim().toLowerCase();
+    if (correctAnswer.trim().toLowerCase() == userAnswer) {
+      feedbackSetter("Correct!");
+      SRS.markCorrect(this);
+    } else {
+      if (userAnswer.isEmpty) {
+        feedbackSetter("Please enter an answer.");
+      } else {
+        feedbackSetter("Incorrect. Correct: $correctAnswer");
+        SRS.markWrong(this);
+      }
+    }
   }
 
   // TODO: Implement a more comprehensive form for verbForms if needed.
@@ -57,6 +95,81 @@ class VerbVocab extends Vocab {
     formWidgets.add(const SizedBox(height: 10));
 
     return formWidgets;
+  }
+
+  @override
+  List<Widget> buildReviewFields(StateSetter setState) {
+    // For VerbVocab, let's review the plain form's reading and meaning.
+    // You could extend this to randomly pick a form or cycle through them.
+    return [
+      Text(
+        plainVerb.verbWord, // Show the plain verb word
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _readingAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Reading of Plain Form',
+          border: OutlineInputBorder(),
+          hintText: 'Enter reading in hiragana/katakana',
+        ),
+        onSubmitted: (_) => _submitReviewAnswerLogic(
+          _readingAnswerController,
+          plainVerb.reading,
+          (f) => setState(() => _readingFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitReviewAnswerLogic(
+          _readingAnswerController,
+          plainVerb.reading,
+          (f) => setState(() => _readingFeedback = f),
+        ),
+        child: const Text("Check Reading"),
+      ),
+      const SizedBox(height: 5),
+      if (_readingFeedback.isNotEmpty)
+        Text(
+          _readingFeedback,
+          style: TextStyle(
+            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _meaningAnswerController,
+        decoration: InputDecoration(
+          labelText: 'Meaning of Plain Form',
+          border: OutlineInputBorder(),
+          hintText: 'Enter meaning in English',
+        ),
+        onSubmitted: (_) => _submitReviewAnswerLogic(
+          _meaningAnswerController,
+          plainVerb.meaning,
+          (f) => setState(() => _meaningFeedback = f),
+        ),
+      ),
+      const SizedBox(height: 5),
+      FilledButton(
+        onPressed: () => _submitReviewAnswerLogic(
+          _meaningAnswerController,
+          plainVerb.meaning,
+          (f) => setState(() => _meaningFeedback = f),
+        ),
+        child: const Text("Check Meaning"),
+      ),
+      const SizedBox(height: 5),
+      if (_meaningFeedback.isNotEmpty)
+        Text(
+          _meaningFeedback,
+          style: TextStyle(
+            color: _meaningFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
+    ];
   }
 
   @override
