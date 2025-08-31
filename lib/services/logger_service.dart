@@ -39,13 +39,18 @@ class LoggerService {
     );
 
     // To catch Dart zone errors
-    Logger.addLogListener((event) {
-      if (event.level.index >= Level.error.index) {
+    Logger.addLogListener((event) async {
+      if (event.level.index >= Level.error.index && _logFile != null) {
         // Log error to file
-        _logger.e(
-          'Zone Error: ${event.message}',
-          error: event.error,
-          stackTrace: event.stackTrace,
+        final logLine =
+            '[${DateTime.now()}] ${event.level.name}: ${event.message}\n'
+            '${event.error ?? ''}\n'
+            '${event.stackTrace ?? ''}\n';
+
+        await _logFile!.writeAsString(
+          logLine,
+          mode: FileMode.writeOnlyAppend,
+          flush: true,
         );
       }
     });
@@ -125,7 +130,24 @@ class FileOutput extends LogOutput {
         );
         await file.rename(backup.path);
         await file.writeAsString('', mode: FileMode.write); // start fresh
+
+        final dir = file.parent;
+        final logFiles = dir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.contains('app_logs.txt'))
+            .toList();
+
+        logFiles.sort((a, b) => a.path.compareTo(b.path));
+
+        const maxBackups = 5;
+        if (logFiles.length > maxBackups) {
+          for (var i = 0; i < logFiles.length - maxBackups; i++) {
+            await logFiles[i].delete();
+          }
+        }
       }
+
       for (var line in event.lines) {
         await file.writeAsString(
           '$line\n',
