@@ -102,7 +102,7 @@ class _AddEditVocabScreenState extends State<AddEditVocabScreen> {
             _logger.i(
               "Save button pressed (Add mode). Vocab type: ${_vocab.type}",
             );
-            _vocab.save();
+            _vocab.add();
             Navigator.pop(context);
             _logger.d("Navigator.pop called after saving (Add mode)");
           },

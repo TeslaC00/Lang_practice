@@ -202,6 +202,26 @@ class WordVocab extends Vocab {
   }
 
   @override
+  Future<void> add() async {
+    LoggerService().d('WordVocab.add called for current word: $word');
+    word = _wordController.text;
+    readings = _readingsController.text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    meanings = _meaningsController.text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    LoggerService().i(
+      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings',
+    );
+    await super.addToBox();
+  }
+
+  @override
   Future<void> save() async {
     LoggerService().d('WordVocab.save called for current word: $word');
     word = _wordController.text;
