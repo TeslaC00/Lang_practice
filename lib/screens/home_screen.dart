@@ -6,6 +6,7 @@ import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/screens/review_screen.dart';
 import 'package:lang_practice/screens/stats_screen.dart';
 import 'package:lang_practice/screens/vocab_list_screen.dart';
+import 'package:lang_practice/services/data_io.dart';
 
 import 'add_edit_vocab_screen.dart';
 
@@ -77,8 +78,18 @@ class HomeScreen extends StatelessWidget {
               child: const Text('Stats'),
             ),
             const Spacer(),
-            const Text(
-              'Tip: Add multiple acceptable answers separated by commas.',
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () async => await exportData(context),
+                  child: Text("Export data"),
+                ),
+                ElevatedButton(
+                  onPressed: () async => await importData(context),
+                  child: Text("Import data"),
+                ),
+              ],
             ),
           ],
         ),
