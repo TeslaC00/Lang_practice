@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -25,20 +26,25 @@ class LoggerService {
         lineLength: 80,
         colors: true,
         printEmojis: true,
-        printTime: true,
+        dateTimeFormat: DateTimeFormat.dateAndTime,
       ),
       output: MultiOutput([
         ConsoleOutput(),
         if (_logFile != null) FileOutput(file: _logFile!),
       ]),
-      filter: ProductionFilter(), // Use ProductionFilter to log only info and above in release.
+      filter:
+          ProductionFilter(), // Use ProductionFilter to log only info and above in release.
     );
 
     // To catch Dart zone errors
     Logger.addLogListener((event) {
       if (event.level.index >= Level.error.index) {
         // Log error to file
-        _logger.e('Zone Error: ${event.message}', error: event.error, stackTrace: event.stackTrace);
+        _logger.e(
+          'Zone Error: ${event.message}',
+          error: event.error,
+          stackTrace: event.stackTrace,
+        );
       }
     });
   }
@@ -59,8 +65,8 @@ class LoggerService {
     _logger.e(message, error: error, stackTrace: stackTrace);
   }
 
-  void v(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.v(message, error: error, stackTrace: stackTrace);
+  void t(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.t(message, error: error, stackTrace: stackTrace);
   }
 
   void wtf(dynamic message, [dynamic error, StackTrace? stackTrace]) {
@@ -79,23 +85,30 @@ class FileOutput extends LogOutput {
   FileOutput({
     required this.file,
     this.overrideExisting = false,
-    this.encoding = 'utf-8', // Placeholder, should use `Encoding.getByName('utf-8')`
+    this.encoding =
+        'utf-8', // Placeholder, should use `Encoding.getByName('utf-8')`
   });
 
   @override
   void output(OutputEvent event) {
     try {
-      final mode = overrideExisting ? FileMode.writeOnly : FileMode.writeOnlyAppend;
-      // Using `ल्यू` directly in the string might cause issues if the encoding is not handled correctly.
+      final mode = overrideExisting
+          ? FileMode.writeOnly
+          : FileMode.writeOnlyAppend;
+      // Using lyu directly in the string might cause issues if the encoding is not handled correctly.
       // It's better to ensure the file is opened with the correct encoding.
       // However, the `logger` package's FileOutput might handle this internally.
       // For simplicity, we'll just write the lines.
       for (var line in event.lines) {
-        file.writeAsStringSync('$line\n', mode: mode, flush: true); // Basic encoding handling
+        file.writeAsStringSync(
+          '$line\n',
+          mode: mode,
+          flush: true,
+        ); // Basic encoding handling
       }
     } catch (e) {
       // In a real app, consider a fallback logging mechanism or reporting this error.
-      print('Failed to write to log file: $e');
+      if (kDebugMode) print('Failed to write to log file: $e');
     }
   }
 }
