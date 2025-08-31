@@ -292,8 +292,10 @@ class WordVocab extends Vocab {
       readings: List<String>.from(json['readings'] as List<dynamic>),
       meanings: List<String>.from(json['meanings'] as List<dynamic>),
     );
-    vocab.level = json['level'] as int;
-    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    vocab.level = (json['level'] as int?) ?? 0;
+    vocab.nextReview = json['nextReview'] != null
+        ? DateTime.parse(json['nextReview'] as String)
+        : DateTime.now();
     LoggerService().i('WordVocab created from json: ${vocab.word}');
     return vocab;
   }

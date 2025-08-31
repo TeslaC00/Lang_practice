@@ -198,8 +198,10 @@ class SentenceVocab extends Vocab {
       sentence: json['sentence'] as String,
       answer: json['answer'] as String,
     );
-    vocab.level = json['level'] as int;
-    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    vocab.level = (json['level'] as int?) ?? 0;
+    vocab.nextReview = json['nextReview'] != null
+        ? DateTime.parse(json['nextReview'] as String)
+        : DateTime.now();
     LoggerService().i('SentenceVocab created from JSON: "${vocab.sentence}"');
     return vocab;
   }
