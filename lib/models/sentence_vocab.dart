@@ -15,6 +15,7 @@ class SentenceVocab extends Vocab {
 
   SentenceVocab({required this.sentence, required this.answer})
     : super(type: VocabType.sentence) {
+    LoggerService().d('SentenceVocab created: "$sentence" - "$answer"');
     _sentenceController = TextEditingController(text: sentence);
     _answerController = TextEditingController(text: answer);
     _reviewAnswerController = TextEditingController();
@@ -22,6 +23,7 @@ class SentenceVocab extends Vocab {
 
   @override
   void dispose() {
+    LoggerService().d('SentenceVocab.dispose called for "$sentence"');
     _sentenceController.dispose();
     _answerController.dispose();
     _reviewAnswerController.dispose();
@@ -35,14 +37,22 @@ class SentenceVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
+    LoggerService().d(
+      'SentenceVocab._submitReviewAnswerLogic: User answer: "$userAnswer", Correct: "$correctAnswer"',
+    );
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
+      LoggerService().i('SentenceVocab review: Correct for "$sentence"');
       SRS.markCorrect(this);
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
+        LoggerService().w('SentenceVocab review: Empty answer for "$sentence"');
       } else {
         feedbackSetter("Incorrect. Correct: $correctAnswer");
+        LoggerService().w(
+          'SentenceVocab review: Incorrect for "$sentence". User: "$userAnswer", Correct: "$correctAnswer"',
+        );
         SRS.markWrong(this);
       }
     }
@@ -50,6 +60,7 @@ class SentenceVocab extends Vocab {
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
+    LoggerService().d('SentenceVocab.buildFormFields called for "$sentence"');
     return [
       _LabeledField(
         'Sentence (use __ for blanks)',
@@ -64,6 +75,7 @@ class SentenceVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
+    LoggerService().d('SentenceVocab.buildReviewFields called for "$sentence"');
     // Show the sentence and ask for answer
     return [
       Text(
@@ -122,9 +134,13 @@ class SentenceVocab extends Vocab {
 
   @override
   Future<void> save() async {
+    LoggerService().d(
+      'SentenceVocab.save called. Old: "$sentence" - "$answer". New: "${_sentenceController.text}" - "${_answerController.text}"',
+    );
     sentence = _sentenceController.text;
     answer = _answerController.text;
     await super.save();
+    LoggerService().i('SentenceVocab saved: "$sentence"');
   }
 
   @override
@@ -147,6 +163,7 @@ class SentenceVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
+    LoggerService().d('SentenceVocab.toJson called for "$sentence"');
     return {
       'type': type.name,
       'level': level,
@@ -157,7 +174,11 @@ class SentenceVocab extends Vocab {
   }
 
   factory SentenceVocab.fromJson(Map<String, dynamic> json) {
+    LoggerService().d('SentenceVocab.fromJson called with data: $json');
     if (json['type'] != VocabType.sentence.name) {
+      LoggerService().e(
+        'Invalid type for SentenceVocab.fromJson: ${json['type']}. Expected ${VocabType.sentence.name}',
+      );
       throw ArgumentError(
         'Invalid type for SentenceVocab.fromJson: ${json['type']}',
       );
@@ -168,6 +189,7 @@ class SentenceVocab extends Vocab {
     );
     vocab.level = json['level'] as int;
     vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    LoggerService().i('SentenceVocab created from JSON: "${vocab.sentence}"');
     return vocab;
   }
 }
