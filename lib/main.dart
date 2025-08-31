@@ -1,5 +1,7 @@
 // lib/main.dart
 // ----------------------
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lang_practice/models/vocab.dart';
@@ -18,7 +20,14 @@ Future<void> main() async {
 
   LoggerService().i("Application Started"); // Example usage
 
-  runApp(const App());
+  FlutterError.onError = (details) {
+    LoggerService().e("FlutterError", details.exception, details.stack);
+  };
+
+  runZonedGuarded(
+    () => runApp(const App()),
+    (error, stack) => LoggerService().e("uncaught error", error, stack),
+  );
 }
 
 class App extends StatelessWidget {

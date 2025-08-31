@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class LoggerService {
   static final LoggerService _instance = LoggerService._internal();
@@ -74,23 +76,41 @@ class LoggerService {
   }
 
   String? get logFilePath => _logFile?.path;
+
+  Future<void> shareLogs() async {
+    if (_logFile == null) return;
+
+    final dir = _logFile!.parent;
+    final logFiles = dir
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.contains('app_logs'))
+        .map((f) => XFile(f.path))
+        .toList();
+
+    if (logFiles.isNotEmpty) {
+      await SharePlus.instance.share(
+        ShareParams(files: logFiles, text: 'App Logs'),
+      );
+    }
+  }
 }
 
 // Optional: A simple file output that appends to the file.
 class FileOutput extends LogOutput {
   final File file;
   final bool overrideExisting;
-  final String encoding; // Should be Encoding
+  final Encoding encoding; // Should be Encoding
 
   FileOutput({
     required this.file,
     this.overrideExisting = false,
     this.encoding =
-        'utf-8', // Placeholder, should use `Encoding.getByName('utf-8')`
+        utf8, // Placeholder, should use `Encoding.getByName('utf-8')`
   });
 
   @override
-  void output(OutputEvent event) {
+  Future<void> output(OutputEvent event) async {
     try {
       final mode = overrideExisting
           ? FileMode.writeOnly
@@ -99,11 +119,19 @@ class FileOutput extends LogOutput {
       // It's better to ensure the file is opened with the correct encoding.
       // However, the `logger` package's FileOutput might handle this internally.
       // For simplicity, we'll just write the lines.
+      if (await file.length() > 1024 * 1024 * 10) {
+        final backup = File(
+          '${file.path}.${DateTime.now().millisecondsSinceEpoch}',
+        );
+        await file.rename(backup.path);
+        await file.writeAsString('', mode: FileMode.write); // start fresh
+      }
       for (var line in event.lines) {
-        file.writeAsStringSync(
+        await file.writeAsString(
           '$line\n',
           mode: mode,
           flush: true,
+          encoding: encoding,
         ); // Basic encoding handling
       }
     } catch (e) {
