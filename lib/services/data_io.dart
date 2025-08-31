@@ -19,14 +19,17 @@ Future<void> exportData(BuildContext context) async {
     final jsonList = vocabs.map((vocab) => vocab.toJson()).toList();
     final jsonString = jsonEncode(jsonList);
 
+    // Convert JSON String to Bytes
+    final bytes = Uint8List.fromList(utf8.encode(jsonString));
     final dir = await getApplicationDocumentsDirectory();
 
     // Pick File to Save
-    String? filePath = await FilePicker.platform.saveFile(
+    final filePath = await FilePicker.platform.saveFile(
       dialogTitle: "Please select an output file:",
       fileName: 'backup.json',
       allowedExtensions: ['json'],
       initialDirectory: dir.path,
+      bytes: bytes,
     );
 
     if (filePath == null) {
@@ -34,8 +37,6 @@ Future<void> exportData(BuildContext context) async {
       return;
     }
 
-    final file = File(filePath);
-    await file.writeAsString(jsonString);
     LoggerService().i("Data exported successfully to $filePath"); // Added log
 
     if (context.mounted) {
@@ -53,10 +54,11 @@ Future<void> exportData(BuildContext context) async {
 Future<void> importData(BuildContext context) async {
   LoggerService().d("importData entry"); // Added log
   // Pick File from Device
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
+  final result = await FilePicker.platform.pickFiles(
     allowMultiple: false,
     type: FileType.custom,
     allowedExtensions: ['json'],
+    withData: true,
   );
 
   // User canceled the picker
@@ -65,18 +67,17 @@ Future<void> importData(BuildContext context) async {
     return;
   }
 
-  File? file = File(result.files.single.path!);
-  if (!file.existsSync()) {
-    LoggerService().w("Import file does not exist: ${file.path}"); // Added log
-    return;
-  }
-  LoggerService().i("Attempting to import data from ${file.path}"); // Added log
-
   // Convert to JSON
   try {
-    final jsonString = await file.readAsString();
-    final List<dynamic> jsonList = jsonDecode(jsonString);
+    LoggerService().i(
+      "Attempting to import data from ${result.files.single.path}",
+    ); // Added log
+    final bytes = result.files.single.bytes;
+    final jsonString = bytes != null
+        ? utf8.decode(bytes)
+        : await File(result.files.single.path!).readAsString();
 
+    final List<dynamic> jsonList = jsonDecode(jsonString);
     final List<Vocab> vocabs = jsonList
         .map((json) => Vocab.fromJson(json as Map<String, dynamic>))
         .toList();
@@ -84,6 +85,7 @@ Future<void> importData(BuildContext context) async {
     // Save to Database
     final box = await Hive.openBox<Vocab>('vocabBox');
     int newVocabsCount = 0;
+
     for (final vocab in vocabs) {
       final exists = box.values.any((v) => v == vocab);
       if (!exists) {
