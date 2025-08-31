@@ -23,6 +23,9 @@ class WordVocab extends Vocab {
     required this.readings,
     required this.meanings,
   }) : super(type: VocabType.word) {
+    LoggerService().d(
+      'WordVocab created: word=$word, readings=$readings, meanings=$meanings',
+    );
     _wordController = TextEditingController(text: word);
     _meaningsController = TextEditingController(text: meanings.join(', '));
     _readingsController = TextEditingController(text: readings.join(', '));
@@ -32,6 +35,7 @@ class WordVocab extends Vocab {
 
   @override
   void dispose() {
+    LoggerService().d('WordVocab.dispose called for word: $word');
     _wordController.dispose();
     _meaningsController.dispose();
     _readingsController.dispose();
@@ -50,22 +54,40 @@ class WordVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
+    LoggerService().d(
+      'WordVocab._submitAnswerLogic: userAnswer="$userAnswer", correctAnswers="$correctAnswers" for word="$word"',
+    );
     if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
       feedbackSetter("Correct!");
-      // Potentially advance SRS, clear controller, etc.
+      LoggerService().i(
+        'WordVocab._submitAnswerLogic: Correct answer for "$word"',
+      );
       SRS.markCorrect(this);
+      LoggerService().d(
+        'WordVocab._submitAnswerLogic: SRS.markCorrect called for "$word"',
+      );
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
+        LoggerService().w(
+          'WordVocab._submitAnswerLogic: Empty answer for "$word"',
+        );
       } else {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
+        LoggerService().w(
+          'WordVocab._submitAnswerLogic: Incorrect answer for "$word"',
+        );
         SRS.markWrong(this);
+        LoggerService().d(
+          'WordVocab._submitAnswerLogic: SRS.markWrong called for "$word"',
+        );
       }
     }
   }
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
+    LoggerService().d('WordVocab.buildFormFields called for word: $word');
     // This assumes _LabeledField is available in the scope.
     // If _LabeledField is defined in Vocab, WordVocab, or imported, this will work.
     // Example: Widget _LabeledField(String label, TextEditingController controller) => Column(...);
@@ -85,6 +107,7 @@ class WordVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
+    LoggerService().d('WordVocab.buildReviewFields called for word: $word');
     return [
       Text(
         word,
@@ -180,6 +203,7 @@ class WordVocab extends Vocab {
 
   @override
   Future<void> save() async {
+    LoggerService().d('WordVocab.save called for current word: $word');
     word = _wordController.text;
     readings = _readingsController.text
         .split(',')
@@ -191,6 +215,9 @@ class WordVocab extends Vocab {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
+    LoggerService().i(
+      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings',
+    );
     await super.save();
   }
 
@@ -219,6 +246,7 @@ class WordVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
+    LoggerService().d('WordVocab.toJson called for word: $word');
     return {
       'type': type.name,
       'level': level,
@@ -230,7 +258,11 @@ class WordVocab extends Vocab {
   }
 
   factory WordVocab.fromJson(Map<String, dynamic> json) {
+    LoggerService().d('WordVocab.fromJson called with json: $json');
     if (json['type'] != VocabType.word.name) {
+      LoggerService().e(
+        'Invalid type for WordVocab.fromJson: ${json['type']}. Expected ${VocabType.word.name}',
+      );
       throw ArgumentError(
         'Invalid type for WordVocab.fromJson: ${json['type']}',
       );
@@ -242,6 +274,7 @@ class WordVocab extends Vocab {
     );
     vocab.level = json['level'] as int;
     vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    LoggerService().i('WordVocab created from json: ${vocab.word}');
     return vocab;
   }
 }

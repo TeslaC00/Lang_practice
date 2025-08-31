@@ -21,6 +21,9 @@ class VerbVocab extends Vocab {
   // TODO: Add controllers for verbForms if they are to be made editable in this form
   VerbVocab({required this.plainVerb, required this.verbForms})
     : super(type: VocabType.verb) {
+    LoggerService().d(
+      'VerbVocab constructor: plainVerb=${plainVerb.verbWord}, verbForms count=${verbForms.length}',
+    );
     _plainVerbWordController = TextEditingController(text: plainVerb.verbWord);
     _plainVerbReadingController = TextEditingController(
       text: plainVerb.reading,
@@ -34,6 +37,7 @@ class VerbVocab extends Vocab {
 
   @override
   void dispose() {
+    LoggerService().d('VerbVocab dispose: Disposing controllers');
     _plainVerbWordController.dispose();
     _plainVerbReadingController.dispose();
     _plainVerbMeaningController.dispose();
@@ -48,14 +52,24 @@ class VerbVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
+    LoggerService().d(
+      'VerbVocab _submitReviewAnswerLogic: userAnswer="$userAnswer", correctAnswer="$correctAnswer"',
+    );
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
+      LoggerService().i(
+        'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
+      );
       SRS.markCorrect(this);
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
+        LoggerService().w('VerbVocab _submitReviewAnswerLogic: Empty answer.');
       } else {
         feedbackSetter("Incorrect. Correct: $correctAnswer");
+        LoggerService().i(
+          'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswer. Marking wrong.',
+        );
         SRS.markWrong(this);
       }
     }
@@ -66,6 +80,7 @@ class VerbVocab extends Vocab {
   // For now, only plainVerb is directly editable.
   @override
   List<Widget> buildFormFields(StateSetter setState) {
+    LoggerService().d('VerbVocab buildFormFields entry');
     List<Widget> formWidgets = [
       _LabeledField('Plain Verb Word (e.g., 食べる)', _plainVerbWordController),
       const SizedBox(height: 10),
@@ -99,6 +114,7 @@ class VerbVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
+    LoggerService().d('VerbVocab buildReviewFields entry');
     // For VerbVocab, let's review the plain form's reading and meaning.
     // You could extend this to randomly pick a form or cycle through them.
     return [
@@ -193,12 +209,16 @@ class VerbVocab extends Vocab {
 
   @override
   Future<void> save() async {
+    LoggerService().d(
+      'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning: "${_plainVerbMeaningController.text}"',
+    );
     plainVerb.verbWord = _plainVerbWordController.text;
     plainVerb.reading = _plainVerbReadingController.text;
     plainVerb.meaning = _plainVerbMeaningController.text;
     // TODO: Implement saving logic for verbForms if they are made editable.
     // This might involve parsing new/updated forms from controllers.
     await super.save();
+    LoggerService().i('VerbVocab save: Save complete.');
   }
 
   @override
@@ -221,6 +241,7 @@ class VerbVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
+    LoggerService().d('VerbVocab toJson entry');
     return {
       'type': type.name,
       'level': level,
@@ -233,7 +254,13 @@ class VerbVocab extends Vocab {
   }
 
   factory VerbVocab.fromJson(Map<String, dynamic> json) {
+    LoggerService().d(
+      'VerbVocab fromJson: Attempting to create VerbVocab from JSON: $json',
+    );
     if (json['type'] != VocabType.verb.name) {
+      LoggerService().e(
+        'VerbVocab fromJson: Invalid type for VerbVocab.fromJson. Expected ${VocabType.verb.name}, got ${json['type']}',
+      );
       throw ArgumentError(
         'Invalid type for VerbVocab.fromJson: ${json['type']}',
       );
@@ -247,6 +274,9 @@ class VerbVocab extends Vocab {
     );
     vocab.level = json['level'] as int;
     vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    LoggerService().i(
+      'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord}',
+    );
     return vocab;
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
+import '../services/logger_service.dart';
 import '../services/srs.dart';
 
 part 'vocab.g.dart';
@@ -41,9 +42,14 @@ abstract class Vocab extends HiveObject {
   @HiveField(3)
   DateTime nextReview = DateTime.now(); // due time
 
-  Vocab({required this.type, this.level = 0});
+  Vocab({required this.type, this.level = 0}) {
+    LoggerService().d(
+      'Vocab constructor called for type: $type, level: $level, key: ${key?.toString() ?? "new"}',
+    );
+  }
 
   static Vocab create(VocabType type) {
+    LoggerService().i('Vocab.create called for type: $type');
     switch (type) {
       case VocabType.word:
         return WordVocab(word: '', meanings: [], readings: []);
@@ -81,32 +87,63 @@ abstract class Vocab extends HiveObject {
 
   @override
   String toString() {
-    return 'Vocab{type: $type, level: $level, nextReview: $nextReview}';
+    return 'Vocab{type: $type, level: $level, nextReview: $nextReview, key: $key}';
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Vocab && runtimeType == other.runtimeType;
+      other is Vocab && runtimeType == other.runtimeType && key == other.key; // Assuming key is primary identifier
 
   @override
-  int get hashCode => nextReview.hashCode;
+  int get hashCode => key?.hashCode ?? super.hashCode;
 
   Map<String, dynamic> toJson();
 
   static Vocab fromJson(Map<String, dynamic> json) {
-    final type = VocabType.values.firstWhere(
-      (type) => type.name == json['type'],
+    final jsonString = json.toString();
+    LoggerService().d(
+      'Vocab.fromJson called with json: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}',
     );
+    final typeStr = json['type'] as String?;
+    if (typeStr == null) {
+      LoggerService().e(
+        'Vocab.fromJson error: type field is missing or null in JSON.',
+        'Missing type in JSON',
+        StackTrace.current,
+      );
+      throw ArgumentError(
+        'Type field is missing or null in JSON for Vocab.fromJson',
+      );
+    }
+
+    final type = VocabType.values.firstWhere(
+      (t) => t.name == typeStr,
+      orElse: () {
+        LoggerService().e(
+          'Vocab.fromJson error: Unknown vocab type: $typeStr',
+          'Unknown vocab type',
+          StackTrace.current,
+        );
+        throw ArgumentError('Unknown vocab type: $typeStr');
+      },
+    );
+
+    LoggerService().i('Vocab.fromJson: creating $type from JSON.');
     switch (type) {
       case VocabType.word:
+        LoggerService().d('Vocab.fromJson: routing to WordVocab.fromJson');
         return WordVocab.fromJson(json);
       case VocabType.time:
+        LoggerService().d('Vocab.fromJson: routing to TimeVocab.fromJson');
         return TimeVocab.fromJson(json);
       case VocabType.sentence:
+        LoggerService().d('Vocab.fromJson: routing to SentenceVocab.fromJson');
         return SentenceVocab.fromJson(json);
       case VocabType.verb:
+        LoggerService().d('Vocab.fromJson: routing to VerbVocab.fromJson');
         return VerbVocab.fromJson(json);
+      // No default needed as orElse in firstWhere handles unknown types
     }
   }
 }

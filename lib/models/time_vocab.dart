@@ -24,6 +24,9 @@ class TimeVocab extends Vocab {
     required this.reading,
     required this.timeValue,
   }) : super(type: VocabType.time) {
+    LoggerService().d(
+      'TimeVocab created: $timeWord, reading: $reading, time: ${_formatTimeOfDay(timeValue)}',
+    );
     _timeWordController = TextEditingController(text: timeWord);
     _readingController = TextEditingController(text: reading);
     _timeValueController = TextEditingController(
@@ -35,6 +38,7 @@ class TimeVocab extends Vocab {
 
   @override
   void dispose() {
+    LoggerService().d('Disposing TimeVocab: $timeWord');
     _timeWordController.dispose();
     _readingController.dispose();
     _timeValueController.dispose();
@@ -50,6 +54,9 @@ class TimeVocab extends Vocab {
   }
 
   static TimeOfDay _parseTimeOfDay(String formattedString) {
+    LoggerService().d(
+      'Attempting to parse TimeOfDay from string: "$formattedString"',
+    );
     try {
       final parts = formattedString.split(':');
       if (parts.length == 2) {
@@ -59,7 +66,15 @@ class TimeVocab extends Vocab {
           return TimeOfDay(hour: hour, minute: minute);
         }
       }
-    } catch (e) {
+      LoggerService().w(
+        'Failed to parse TimeOfDay string "$formattedString": Invalid format',
+      );
+    } catch (e, s) {
+      LoggerService().e(
+        'Error parsing TimeOfDay string "$formattedString"',
+        e,
+        s,
+      );
       if (kDebugMode) {
         print('Error parsing TimeOfDay string "$formattedString": $e');
       }
@@ -74,15 +89,24 @@ class TimeVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
+    LoggerService().d(
+      'Submitting answer for reading. User: "$userAnswer", Correct: "${correctAnswers.join(', ')}"',
+    );
     if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
       feedbackSetter("Correct!");
       SRS.markCorrect(this);
+      LoggerService().i('Reading answer correct for "$timeWord"');
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
+        LoggerService().i('Reading answer empty for "$timeWord"');
       } else {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
         SRS.markWrong(this);
+        LoggerService().i(
+          'Reading answer incorrect for "$timeWord". User: "$userAnswer", '
+          'Correct: "${correctAnswers.join(', ')}"',
+        );
       }
     }
   }
@@ -93,23 +117,35 @@ class TimeVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswerString = controller.text.trim();
+    LoggerService().d(
+      'Submitting time answer. User: "$userAnswerString", Correct: ${_formatTimeOfDay(correctTimeValue)}',
+    );
     try {
       final userAnswerTime = _parseTimeOfDay(userAnswerString);
       if (userAnswerTime.hour == correctTimeValue.hour &&
           userAnswerTime.minute == correctTimeValue.minute) {
         feedbackSetter("Correct!");
+        LoggerService().i('Time answer correct for "$timeWord"');
       } else {
         feedbackSetter(
           "Incorrect. Correct: ${_formatTimeOfDay(correctTimeValue)}",
         );
+        LoggerService().i(
+          'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: ${_formatTimeOfDay(correctTimeValue)}',
+        );
       }
-    } catch (e) {
+    } catch (e, s) {
       feedbackSetter("Invalid format. Please use HH:MM.");
+      LoggerService().w(
+        'Invalid time format submitted by user: "$userAnswerString"',
+        [e, s],
+      );
     }
   }
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
+    LoggerService().d('Building form fields for TimeVocab: $timeWord');
     return [
       _LabeledField('Time Word (e.g., 7:30 AM, 今)', _timeWordController),
       const SizedBox(height: 10),
@@ -122,6 +158,7 @@ class TimeVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
+    LoggerService().d('Building review fields for TimeVocab: $timeWord');
     return [
       Text(
         timeWord,
@@ -211,10 +248,14 @@ class TimeVocab extends Vocab {
 
   @override
   Future<void> save() async {
+    LoggerService().d(
+      'Saving TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}',
+    );
     timeWord = _timeWordController.text;
     reading = _readingController.text;
     timeValue = _parseTimeOfDay(_timeValueController.text);
     await super.save();
+    LoggerService().i('TimeVocab "$timeWord" saved.');
   }
 
   @override
@@ -244,6 +285,7 @@ class TimeVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
+    LoggerService().d('Converting TimeVocab to JSON: $timeWord');
     return {
       'type': type.name,
       'level': level,
@@ -255,7 +297,11 @@ class TimeVocab extends Vocab {
   }
 
   factory TimeVocab.fromJson(Map<String, dynamic> json) {
+    LoggerService().d(
+      'Attempting to create TimeVocab from JSON: ${json['timeWord']}',
+    );
     if (json['type'] != VocabType.time.name) {
+      LoggerService().e('Invalid type for TimeVocab.fromJson: ${json['type']}');
       throw ArgumentError(
         'Invalid type for TimeVocab.fromJson: ${json['type']}',
       );
@@ -269,6 +315,7 @@ class TimeVocab extends Vocab {
     );
     vocab.level = json['level'] as int;
     vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    LoggerService().i('TimeVocab created from JSON: ${vocab.timeWord}');
     return vocab;
   }
 }
