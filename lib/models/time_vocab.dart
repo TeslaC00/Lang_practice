@@ -7,7 +7,7 @@ class TimeVocab extends Vocab {
   @HiveField(5)
   String reading;
   @HiveField(6)
-  TimeOfDay timeValue; // Stores a fixed time for HH:MM part.
+  String timeString; // Stores a fixed time for HH:MM part.
 
   late TextEditingController _timeWordController;
   late TextEditingController _readingController;
@@ -22,16 +22,14 @@ class TimeVocab extends Vocab {
   TimeVocab({
     required this.timeWord,
     required this.reading,
-    required this.timeValue,
+    required this.timeString,
   }) : super(type: VocabType.time) {
     LoggerService().d(
-      'TimeVocab created: $timeWord, reading: $reading, time: ${_formatTimeOfDay(timeValue)}',
+      'TimeVocab created: $timeWord, reading: $reading, time: $timeString',
     );
     _timeWordController = TextEditingController(text: timeWord);
     _readingController = TextEditingController(text: reading);
-    _timeValueController = TextEditingController(
-      text: _formatTimeOfDay(timeValue),
-    );
+    _timeValueController = TextEditingController(text: timeString);
     _readingAnswerController = TextEditingController();
     _timeValueAnswerController = TextEditingController();
   }
@@ -45,41 +43,6 @@ class TimeVocab extends Vocab {
     _readingAnswerController.dispose();
     _timeValueAnswerController.dispose();
     // if Vocab has a dispose, call super.dispose();
-  }
-
-  static String _formatTimeOfDay(TimeOfDay tod) {
-    final hour = tod.hour.toString().padLeft(2, '0');
-    final minute = tod.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  static TimeOfDay _parseTimeOfDay(String formattedString) {
-    LoggerService().d(
-      'Attempting to parse TimeOfDay from string: "$formattedString"',
-    );
-    try {
-      final parts = formattedString.split(':');
-      if (parts.length == 2) {
-        final hour = int.parse(parts[0]);
-        final minute = int.parse(parts[1]);
-        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-          return TimeOfDay(hour: hour, minute: minute);
-        }
-      }
-      LoggerService().w(
-        'Failed to parse TimeOfDay string "$formattedString": Invalid format',
-      );
-    } catch (e, s) {
-      LoggerService().e(
-        'Error parsing TimeOfDay string "$formattedString"',
-        e,
-        s,
-      );
-      if (kDebugMode) {
-        print('Error parsing TimeOfDay string "$formattedString": $e');
-      }
-    }
-    return const TimeOfDay(hour: 0, minute: 0); // Default fallback
   }
 
   // Helper method for review logic (adapted from WordVocab)
@@ -113,32 +76,21 @@ class TimeVocab extends Vocab {
 
   void _submitTimeAnswerLogic(
     TextEditingController controller,
-    TimeOfDay correctTimeValue,
+    String correctTimeString,
     Function(String) feedbackSetter,
   ) {
     final userAnswerString = controller.text.trim();
     LoggerService().d(
-      'Submitting time answer. User: "$userAnswerString", Correct: ${_formatTimeOfDay(correctTimeValue)}',
+      'Submitting time answer. User: "$userAnswerString", Correct: $correctTimeString',
     );
-    try {
-      final userAnswerTime = _parseTimeOfDay(userAnswerString);
-      if (userAnswerTime.hour == correctTimeValue.hour &&
-          userAnswerTime.minute == correctTimeValue.minute) {
-        feedbackSetter("Correct!");
-        LoggerService().i('Time answer correct for "$timeWord"');
-      } else {
-        feedbackSetter(
-          "Incorrect. Correct: ${_formatTimeOfDay(correctTimeValue)}",
-        );
-        LoggerService().i(
-          'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: ${_formatTimeOfDay(correctTimeValue)}',
-        );
-      }
-    } catch (e, s) {
-      feedbackSetter("Invalid format. Please use HH:MM.");
-      LoggerService().w(
-        'Invalid time format submitted by user: "$userAnswerString"',
-        [e, s],
+
+    if (userAnswerString == correctTimeString) {
+      feedbackSetter("Correct!");
+      LoggerService().i('Time answer correct for "$timeWord"');
+    } else {
+      feedbackSetter("Incorrect. Correct: $correctTimeString");
+      LoggerService().i(
+        'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: $correctTimeString',
       );
     }
   }
@@ -205,7 +157,7 @@ class TimeVocab extends Vocab {
         keyboardType: TextInputType.datetime,
         onSubmitted: (_) => _submitTimeAnswerLogic(
           _timeValueAnswerController,
-          timeValue,
+          timeString,
           (f) => setState(() => _timeValueFeedback = f),
         ),
       ),
@@ -213,7 +165,7 @@ class TimeVocab extends Vocab {
       FilledButton(
         onPressed: () => _submitTimeAnswerLogic(
           _timeValueAnswerController,
-          timeValue,
+          timeString,
           (f) => setState(() => _timeValueFeedback = f),
         ),
         child: const Text("Check Time Value"),
@@ -236,14 +188,13 @@ class TimeVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    String formattedTime = _formatTimeOfDay(timeValue);
-    return '$reading at $formattedTime';
+    return '$reading at $timeString';
   }
 
   @override
   String displaySummary() {
-    String formattedTime = _formatTimeOfDay(timeValue);
-    return 'Time: $timeWord ($reading) at $formattedTime\n${super.displaySummary()}';
+    return 'Time: $timeWord ($reading) at $timeString\n${super.displaySummary()}';
+  }
   }
 
   @override
@@ -253,7 +204,7 @@ class TimeVocab extends Vocab {
     );
     timeWord = _timeWordController.text;
     reading = _readingController.text;
-    timeValue = _parseTimeOfDay(_timeValueController.text);
+    timeString = _timeValueController.text;
     await super.save();
     LoggerService().i('TimeVocab "$timeWord" saved.');
   }
@@ -261,7 +212,7 @@ class TimeVocab extends Vocab {
   @override
   String toString() {
     return 'TimeVocab{timeWord: $timeWord, reading: $reading, '
-        'timeValue: ${_formatTimeOfDay(timeValue)}, type: $type, level: $level, nextReview: $nextReview}';
+        'timeValue: $timeString, type: $type, level: $level, nextReview: $nextReview}';
   }
 
   @override
@@ -272,16 +223,14 @@ class TimeVocab extends Vocab {
           runtimeType == other.runtimeType &&
           timeWord == other.timeWord &&
           reading == other.reading &&
-          timeValue.hour == other.timeValue.hour &&
-          timeValue.minute == other.timeValue.minute;
+          timeString == other.timeString;
 
   @override
   int get hashCode =>
       super.hashCode ^
       timeWord.hashCode ^
       reading.hashCode ^
-      timeValue.hour.hashCode ^
-      timeValue.minute.hashCode;
+      timeString.hashCode;
 
   @override
   Map<String, dynamic> toJson() {
@@ -292,7 +241,7 @@ class TimeVocab extends Vocab {
       'nextReview': nextReview.toIso8601String(),
       'timeWord': timeWord,
       'reading': reading,
-      'timeValue': _formatTimeOfDay(timeValue), // Store as HH:mm string
+      'timeString': timeString, // Store as HH:mm string
     };
   }
 
@@ -309,12 +258,12 @@ class TimeVocab extends Vocab {
     final vocab = TimeVocab(
       timeWord: json['timeWord'] as String,
       reading: json['reading'] as String,
-      timeValue: _parseTimeOfDay(
-        json['timeValue'] as String,
-      ), // Parse from HH:mm string
+      timeString: json['timeString'] as String, // Parse from HH:mm string
     );
-    vocab.level = json['level'] as int;
-    vocab.nextReview = DateTime.parse(json['nextReview'] as String);
+    vocab.level = (json['level'] as int?) ?? 0;
+    vocab.nextReview = json['nextReview'] != null
+        ? DateTime.parse(json['nextReview'] as String)
+        : DateTime.now();
     LoggerService().i('TimeVocab created from JSON: ${vocab.timeWord}');
     return vocab;
   }
