@@ -31,11 +31,9 @@ enum VocabType {
   time,
 }
 
-@HiveType(typeId: 2)
-class Vocab extends HiveObject {
+abstract class Vocab extends HiveObject {
   @HiveField(1)
   VocabType type;
-
   @HiveField(2)
   int level; // 0-10
   @HiveField(3)
@@ -59,10 +57,7 @@ class Vocab extends HiveObject {
     }
   }
 
-  List<Widget> buildFormFields(StateSetter setState) {
-    // TODO: implement buildFormFields
-    throw UnimplementedError();
-  }
+  List<Widget> buildFormFields(StateSetter setState);
 
   String displayTitle() {
     return type.name;

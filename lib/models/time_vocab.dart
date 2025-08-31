@@ -1,6 +1,6 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 4)
+@HiveType(typeId: 3)
 class TimeVocab extends Vocab {
   @HiveField(4)
   String timeWord;

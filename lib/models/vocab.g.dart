@@ -6,45 +6,6 @@ part of 'vocab.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class VocabAdapter extends TypeAdapter<Vocab> {
-  @override
-  final int typeId = 2;
-
-  @override
-  Vocab read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return Vocab(
-      type: fields[1] as VocabType,
-      level: fields[2] as int,
-    )..nextReview = fields[3] as DateTime;
-  }
-
-  @override
-  void write(BinaryWriter writer, Vocab obj) {
-    writer
-      ..writeByte(3)
-      ..writeByte(1)
-      ..write(obj.type)
-      ..writeByte(2)
-      ..write(obj.level)
-      ..writeByte(3)
-      ..write(obj.nextReview);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is VocabAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
 class VocabTypeAdapter extends TypeAdapter<VocabType> {
   @override
   final int typeId = 1;
@@ -96,7 +57,7 @@ class VocabTypeAdapter extends TypeAdapter<VocabType> {
 
 class WordVocabAdapter extends TypeAdapter<WordVocab> {
   @override
-  final int typeId = 3;
+  final int typeId = 2;
 
   @override
   WordVocab read(BinaryReader reader) {
@@ -145,7 +106,7 @@ class WordVocabAdapter extends TypeAdapter<WordVocab> {
 
 class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
   @override
-  final int typeId = 4;
+  final int typeId = 3;
 
   @override
   TimeVocab read(BinaryReader reader) {
@@ -194,7 +155,7 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
 
 class SentenceVocabAdapter extends TypeAdapter<SentenceVocab> {
   @override
-  final int typeId = 5;
+  final int typeId = 4;
 
   @override
   SentenceVocab read(BinaryReader reader) {
@@ -240,7 +201,7 @@ class SentenceVocabAdapter extends TypeAdapter<SentenceVocab> {
 
 class VerbFormAdapter extends TypeAdapter<VerbForm> {
   @override
-  final int typeId = 6;
+  final int typeId = 5;
 
   @override
   VerbForm read(BinaryReader reader) {
@@ -280,7 +241,7 @@ class VerbFormAdapter extends TypeAdapter<VerbForm> {
 
 class VerbVocabAdapter extends TypeAdapter<VerbVocab> {
   @override
-  final int typeId = 7;
+  final int typeId = 6;
 
   @override
   VerbVocab read(BinaryReader reader) {
