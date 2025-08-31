@@ -279,12 +279,15 @@ class VerbVocab extends Vocab {
         'Invalid type for VerbVocab.fromJson: ${json['type']}',
       );
     }
+
     final vocab = VerbVocab(
       plainVerb: VerbForm.fromJson(json['plainVerb'] as Map<String, dynamic>),
-      verbForms: (json['verbForms'] as Map<String, dynamic>).map(
-        (key, value) =>
-            MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
-      ),
+      verbForms:
+          (json['verbForms'] as Map<String, dynamic>?)?.map(
+            (key, value) =>
+                MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
+          ) ??
+          {},
     );
     vocab.level = (json['level'] as int?) ?? 0;
     vocab.nextReview = json['nextReview'] != null
