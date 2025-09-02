@@ -103,6 +103,11 @@ class SRS {
 
     return result;
   }
+
+  static Future<int> getDueCont({int maxReviewPerDay = 30}) async {
+    final dues = await SRS.getDues(maxReviewPerDay: maxReviewPerDay);
+    return dues.length;
+  }
 }
 
 bool answerMatches(String input, List<String> answers) {

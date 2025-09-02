@@ -1,13 +1,12 @@
 // lib/screens/home_screen.dart
 // ----------------------
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/screens/review_screen.dart';
 import 'package:lang_practice/screens/stats_screen.dart';
 import 'package:lang_practice/screens/vocab_list_screen.dart';
 import 'package:lang_practice/services/data_io.dart';
 import 'package:lang_practice/services/logger_service.dart';
+import 'package:lang_practice/services/srs.dart';
 
 import 'add_edit_vocab_screen.dart';
 
@@ -22,11 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int dueCount = 0;
 
   void _updateDueCount() {
-    final box = Hive.box<Vocab>('vocabBox');
-    setState(() {
-      dueCount = box.values
-          .where((v) => v.meta.nextReview.isBefore(DateTime.now()))
-          .length;
+    setState(() async {
+      dueCount = await SRS.getDueCont();
     });
   }
 
