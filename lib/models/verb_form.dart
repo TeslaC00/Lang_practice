@@ -55,11 +55,7 @@ class VerbForm extends HiveObject {
   // ToJson method
   Map<String, dynamic> toJson() {
     LoggerService().d('VerbForm.toJson called for verbWord=$verbWord');
-    return {
-      'verbWord': verbWord,
-      'reading': readings,
-      'meaning': meanings,
-    }; // meaning is already List<String>
+    return {'verbWord': verbWord, 'readings': readings, 'meanings': meanings};
   }
 
   // FromJson factory constructor
@@ -67,8 +63,8 @@ class VerbForm extends HiveObject {
     LoggerService().d('VerbForm.fromJson called with json: $json');
     final instance = VerbForm(
       verbWord: json['verbWord'] as String,
-      readings: json['reading'] as List<String>,
-      meanings: json['meaning'] as List<String>,
+      readings: List<String>.from(json['readings'] as List<dynamic>),
+      meanings: List<String>.from(json['readings'] as List<dynamic>),
     );
     LoggerService().d(
       'VerbForm.fromJson created instance: ${instance.verbWord}',

@@ -283,7 +283,7 @@ class TimeVocab extends Vocab {
     final json = super.toJson(); // Gets 'type', 'meta', and 'notes'
     json.addAll({
       'timeWord': timeWord,
-      'reading': readings,
+      'readings': readings,
       'timeString': timeString,
     });
     return json;
@@ -310,7 +310,7 @@ class TimeVocab extends Vocab {
 
     final vocab = TimeVocab(
       timeWord: json['timeWord'] as String,
-      readings: json['reading'] as List<String>,
+      readings: List<String>.from(json['readings'] as List<dynamic>),
       timeString: json['timeString'] as String,
       meta: vocabMeta,
       notes: notes,
