@@ -101,7 +101,10 @@ class VerbVocab extends Vocab {
         _plainVerbMeaningController,
       ),
       const SizedBox(height: 10),
+      _LabeledField('Notes', _notesController),
+      const SizedBox(height: 10),
       const Text('Verb Forms:', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 10),
     ];
 
     verbForms.forEach((key, verbForm) {
@@ -112,11 +115,6 @@ class VerbVocab extends Vocab {
         ),
       );
     });
-    formWidgets.addAll([
-      const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController),
-    ]);
-    formWidgets.add(const SizedBox(height: 10));
 
     return formWidgets;
   }
@@ -210,14 +208,12 @@ class VerbVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    String baseSubtext = super.displaySubtext();
     String plainVerbSubtext = plainVerb.displaySubtext();
-    String formsCount = 'Forms: ${verbForms.length}';
+    String formsCount = verbForms.isEmpty ? '' : 'Forms: ${verbForms.length}';
 
     List<String> parts = [];
     if (plainVerbSubtext.isNotEmpty) parts.add(plainVerbSubtext);
     parts.add(formsCount);
-    if (baseSubtext.isNotEmpty) parts.add(baseSubtext);
     if (notes.isNotEmpty) parts.add('Notes: $notes');
 
     return parts.join(' | ');

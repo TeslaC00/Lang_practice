@@ -26,7 +26,9 @@ class SentenceVocab extends Vocab {
     _sentenceController = TextEditingController(text: sentence);
     _answerController = TextEditingController(text: answer);
     _reviewAnswerController = TextEditingController();
-    _notesController = TextEditingController(text: notes); // Initialize notes controller
+    _notesController = TextEditingController(
+      text: notes,
+    ); // Initialize notes controller
   }
 
   @override
@@ -79,7 +81,8 @@ class SentenceVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Answer/Translation', _answerController, maxLines: 3),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 2), // Added notes field
+      _LabeledField('Notes', _notesController, maxLines: 2),
+      // Added notes field
     ];
   }
 

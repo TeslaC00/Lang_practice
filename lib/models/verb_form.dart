@@ -64,7 +64,7 @@ class VerbForm extends HiveObject {
     final instance = VerbForm(
       verbWord: json['verbWord'] as String,
       readings: List<String>.from(json['readings'] as List<dynamic>),
-      meanings: List<String>.from(json['readings'] as List<dynamic>),
+      meanings: List<String>.from(json['meanings'] as List<dynamic>),
     );
     LoggerService().d(
       'VerbForm.fromJson created instance: ${instance.verbWord}',
