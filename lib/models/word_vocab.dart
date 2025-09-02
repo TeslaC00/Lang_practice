@@ -123,14 +123,6 @@ class WordVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
-      if (notes.isNotEmpty) // Display notes if they exist
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            "Notes: $notes", // Notes are already displayed here
-            style: TextStyle(fontStyle: FontStyle.italic),
-          ),
-        ),
       const SizedBox(height: 10),
       TextField(
         controller: _readingAnswerController,
@@ -191,6 +183,14 @@ class WordVocab extends Vocab {
           _meaningFeedback,
           style: TextStyle(
             color: _meaningFeedback == "Correct!" ? Colors.green : Colors.red,
+          ),
+        ),
+      if (notes.isNotEmpty) // Display notes if they exist
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            "Notes: $notes",
+            style: TextStyle(fontStyle: FontStyle.italic),
           ),
         ),
     ];
