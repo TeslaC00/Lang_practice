@@ -2,11 +2,11 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 3)
 class TimeVocab extends Vocab {
-  @HiveField(2) // Adjusted index
+  @HiveField(3)
   String timeWord;
-  @HiveField(3) // Adjusted index
+  @HiveField(4)
   String reading;
-  @HiveField(4) // Adjusted index
+  @HiveField(5)
   String timeString; // Stores a fixed time for HH:MM part.
 
   late TextEditingController _timeWordController;
@@ -23,9 +23,9 @@ class TimeVocab extends Vocab {
     required this.timeWord,
     required this.reading,
     required this.timeString,
-    super.meta, // Added meta
+    super.meta,
+    super.notes,
   }) : super(type: VocabType.time) {
-    // Pass meta to super
     LoggerService().d(
       'TimeVocab created: $timeWord, reading: $reading, time: $timeString, meta: $meta',
     );
@@ -120,6 +120,14 @@ class TimeVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
+      if (notes.isNotEmpty) // Display notes if they exist
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            "Notes: $notes",
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
       const SizedBox(height: 10),
       TextField(
         controller: _readingAnswerController,
@@ -193,7 +201,8 @@ class TimeVocab extends Vocab {
   String displaySubtext() {
     // This is specific to TimeVocab and doesn't use level/nextReview directly
     // It calls super.displaySubtext() in displaySummary()
-    return '$reading at $timeString';
+    return '$reading at $timeString '
+        '${notes.isNotEmpty ? '\nNotes: $notes' : ''}';
   }
 
   @override
@@ -279,11 +288,14 @@ class TimeVocab extends Vocab {
         ? VocabMeta.fromJson(metaJson)
         : VocabMeta(); // Default if not present
 
+    final notes = json['notes'] as String? ?? ''; // Extract notes
+
     final vocab = TimeVocab(
       timeWord: json['timeWord'] as String,
       reading: json['reading'] as String,
       timeString: json['timeString'] as String,
-      meta: vocabMeta, // Pass parsed meta
+      meta: vocabMeta,
+      notes: notes,
     );
     // Level and nextReview are now part of meta and handled by VocabMeta.fromJson
     // and Vocab constructor

@@ -13,9 +13,6 @@ import '../services/srs.dart';
 
 part 'vocab.g.dart';
 
-// Note: If vocab_meta.g.dart is needed, it will be generated into vocab.g.dart
-// as VocabMeta is defined in this file.
-
 part 'word_vocab.dart';
 
 part 'time_vocab.dart';
@@ -45,15 +42,20 @@ abstract class Vocab extends HiveObject {
   @HiveField(1)
   VocabMeta meta;
 
-  Vocab({required this.type, VocabMeta? meta}) : meta = meta ?? VocabMeta() {
+  @HiveField(2)
+  String notes;
+
+  Vocab({required this.type, VocabMeta? meta, this.notes = ''})
+    : meta = meta ?? VocabMeta() {
     LoggerService().d(
-      'Vocab constructor called for type: $type, level: ${this.meta.level}, key: ${key?.toString() ?? "new"}',
+      'Vocab constructor called for type: $type, notes: $notes, level: ${this.meta.level}, key: ${key?.toString() ?? "new"}',
     );
   }
 
   static Vocab create(VocabType type) {
     LoggerService().i('Vocab.create called for type: $type');
     // VocabMeta will be initialized with defaults by the Vocab constructor
+    // Notes will default to ''
     switch (type) {
       case VocabType.word:
         return WordVocab(word: '', meanings: [], readings: []);
@@ -79,8 +81,6 @@ abstract class Vocab extends HiveObject {
 
   Future<void> addToBox() async {
     final box = Hive.box<Vocab>('vocabBox');
-    // Ensure meta is also saved if it's a separate HiveObject,
-    // but here it's part of Vocab, so Hive handles it.
     await box.add(this);
   }
 
@@ -95,12 +95,12 @@ abstract class Vocab extends HiveObject {
 
   String displaySummary() {
     final DateFormat formatter = DateFormat.yMd();
-    return 'Type: ${type.name}, Level: ${meta.level}, Next Review: ${formatter.format(meta.nextReview)}';
+    return 'Type: ${type.name}, Notes: $notes, Level: ${meta.level}, Next Review: ${formatter.format(meta.nextReview)}';
   }
 
   @override
   String toString() {
-    return 'Vocab{type: $type, meta: $meta, key: $key}';
+    return 'Vocab{type: $type, notes: $notes, meta: $meta, key: $key}';
   }
 
   @override
@@ -111,13 +111,10 @@ abstract class Vocab extends HiveObject {
   @override
   int get hashCode => key?.hashCode ?? super.hashCode;
 
-  // Subclasses will call super.toJson() and add their specific fields.
   Map<String, dynamic> toJson() {
-    return {'type': type.name, 'meta': meta.toJson()};
+    return {'type': type.name, 'notes': notes, 'meta': meta.toJson()};
   }
 
-  // fromJson is static and handled by subclasses which will create VocabMeta
-  // and pass it to their constructor (which passes to super Vocab constructor)
   static Vocab fromJson(Map<String, dynamic> json) {
     final jsonString = json.toString();
     LoggerService().d(
@@ -139,9 +136,9 @@ abstract class Vocab extends HiveObject {
         throw ArgumentError(errorMsg);
       },
     );
+    // notes will be extracted by subclasses and passed to their constructor.
+    // meta will be extracted by subclasses and passed.
 
-    // The actual Vocab object creation is delegated to subclass fromJson methods.
-    // They will handle the 'meta' field.
     LoggerService().i('Vocab.fromJson: routing to $type.fromJson.');
     switch (type) {
       case VocabType.word:

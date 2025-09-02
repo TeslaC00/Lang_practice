@@ -14,28 +14,24 @@ class VocabMeta extends HiveObject {
   bool isNew;
 
   @HiveField(3)
-  String notes;
-
-  @HiveField(4)
   int totalCorrectTimes;
 
-  @HiveField(5)
+  @HiveField(4)
   int totalWrongTimes;
 
+  @HiveField(5)
+  int correctTimesCounter;
+
   @HiveField(6)
-  int correctTimesCounter; // Consecutive correct answers
+  int wrongTimesCounter;
 
   @HiveField(7)
-  int wrongTimesCounter; // Consecutive wrong answers (resets correctTimesCounter)
-
-  @HiveField(8)
   DateTime? lastReview;
 
   VocabMeta({
     this.level = 0,
     DateTime? nextReview,
     this.isNew = true,
-    this.notes = '',
     this.totalCorrectTimes = 0,
     this.totalWrongTimes = 0,
     this.correctTimesCounter = 0,
@@ -43,18 +39,16 @@ class VocabMeta extends HiveObject {
     this.lastReview,
   }) : nextReview = nextReview ?? DateTime.now();
 
-  Map<String, dynamic> toJson() =>
-      {
-        'level': level,
-        'nextReview': nextReview.toIso8601String(),
-        'isNew': isNew,
-        'notes': notes,
-        'totalCorrectTimes': totalCorrectTimes,
-        'totalWrongTimes': totalWrongTimes,
-        'correctTimesCounter': correctTimesCounter,
-        'wrongTimesCounter': wrongTimesCounter,
-        'lastReview': lastReview?.toIso8601String(),
-      };
+  Map<String, dynamic> toJson() => {
+    'level': level,
+    'nextReview': nextReview.toIso8601String(),
+    'isNew': isNew,
+    'totalCorrectTimes': totalCorrectTimes,
+    'totalWrongTimes': totalWrongTimes,
+    'correctTimesCounter': correctTimesCounter,
+    'wrongTimesCounter': wrongTimesCounter,
+    'lastReview': lastReview?.toIso8601String(),
+  };
 
   static VocabMeta fromJson(Map<String, dynamic> json) {
     return VocabMeta(
@@ -63,7 +57,6 @@ class VocabMeta extends HiveObject {
           ? DateTime.now()
           : DateTime.parse(json['nextReview'] as String),
       isNew: json['isNew'] as bool? ?? true,
-      notes: json['notes'] as String? ?? '',
       totalCorrectTimes: json['totalCorrectTimes'] as int? ?? 0,
       totalWrongTimes: json['totalWrongTimes'] as int? ?? 0,
       correctTimesCounter: json['correctTimesCounter'] as int? ?? 0,
@@ -77,7 +70,7 @@ class VocabMeta extends HiveObject {
   @override
   String toString() {
     return 'VocabMeta{level: $level, nextReview: $nextReview, isNew: $isNew, '
-        'notes: $notes, totalCorrect: $totalCorrectTimes, totalWrong: $totalWrongTimes, '
+        'totalCorrect: $totalCorrectTimes, totalWrong: $totalWrongTimes, '
         'correctStreak: $correctTimesCounter, wrongStreak: $wrongTimesCounter, lastReview: $lastReview}';
   }
 }

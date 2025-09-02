@@ -2,19 +2,23 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 4)
 class SentenceVocab extends Vocab {
-  @HiveField(2) // Changed from 4
+  @HiveField(3)
   String sentence;
-  @HiveField(3) // Changed from 5
+  @HiveField(4)
   String answer;
 
   late TextEditingController _sentenceController;
   late TextEditingController _answerController;
-  late TextEditingController _reviewAnswerController; // For review input
+  late TextEditingController _reviewAnswerController;
 
   String _reviewFeedback = ''; // Feedback for the review screen
 
-  SentenceVocab({required this.sentence, required this.answer, super.meta})
-    : super(type: VocabType.sentence) {
+  SentenceVocab({
+    required this.sentence,
+    required this.answer,
+    super.meta,
+    super.notes,
+  }) : super(type: VocabType.sentence) {
     LoggerService().d(
       'SentenceVocab created: "$sentence" - "$answer", Level: ${meta.level}',
     );
@@ -84,6 +88,14 @@ class SentenceVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
+      if (notes.isNotEmpty) // Display notes if they exist
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            "Notes: $notes",
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
       const SizedBox(height: 10),
       TextField(
         controller: _reviewAnswerController,
@@ -127,7 +139,7 @@ class SentenceVocab extends Vocab {
   // The generic level/review info is available via Vocab.displaySubtext if needed elsewhere.
   @override
   String displaySubtext() {
-    return answer;
+    return "$answer ${notes.isNotEmpty ? '\nNotes: $notes' : ''}";
   }
 
   @override
@@ -204,10 +216,13 @@ class SentenceVocab extends Vocab {
         ? VocabMeta.fromJson(metaJson)
         : VocabMeta(); // Or handle error if meta is strictly required
 
+    final notes = json['notes'] as String? ?? ''; // Extract notes
+
     final vocab = SentenceVocab(
       sentence: json['sentence'] as String,
       answer: json['answer'] as String,
       meta: vocabMeta, // Pass parsed VocabMeta
+      notes: notes,
     );
     // Level and nextReview are now part of meta, no need to set them directly.
 

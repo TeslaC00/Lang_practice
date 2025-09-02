@@ -2,11 +2,11 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 2)
 class WordVocab extends Vocab {
-  @HiveField(2) // Adjusted index
+  @HiveField(3)
   String word;
-  @HiveField(3) // Adjusted index
+  @HiveField(4)
   List<String> readings;
-  @HiveField(4) // Adjusted index
+  @HiveField(5)
   List<String> meanings;
 
   late TextEditingController _wordController;
@@ -15,19 +15,22 @@ class WordVocab extends Vocab {
   late TextEditingController _readingAnswerController;
   late TextEditingController _meaningAnswerController;
 
-  String _readingFeedback = ''; // Initialized
-  String _meaningFeedback = ''; // Initialized
+  // Notes controller is no longer needed here if notes are handled by a general field in Vocab
+  // or AddEditScreen directly uses vocab.notes.
+  // However, if buildFormFields for WordVocab specifically adds a notes field, it would use vocab.notes.
+
+  String _readingFeedback = '';
+  String _meaningFeedback = '';
 
   WordVocab({
     required this.word,
     required this.readings,
     required this.meanings,
-    super.meta, // Added meta parameter
+    super.meta,
+    super.notes,
   }) : super(type: VocabType.word) {
-    // Pass meta to super
     LoggerService().d(
-      'WordVocab created: word=$word, readings=$readings, meanings=$meanings, '
-      'level=${meta.level}',
+      'WordVocab created: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
     );
     _wordController = TextEditingController(text: word);
     _meaningsController = TextEditingController(text: meanings.join(', '));
@@ -44,10 +47,9 @@ class WordVocab extends Vocab {
     _readingsController.dispose();
     _readingAnswerController.dispose();
     _meaningAnswerController.dispose();
-    // if Vocab has a dispose, call super.dispose();
+    // super.dispose(); // If Vocab base class had a dispose method.
   }
 
-  // Helper method for review logic
   void _submitAnswerLogic(
     TextEditingController controller,
     List<String> correctAnswers,
@@ -62,7 +64,7 @@ class WordVocab extends Vocab {
       LoggerService().i(
         'WordVocab._submitAnswerLogic: Correct answer for "$word"',
       );
-      SRS.markCorrect(this); // 'this' is a Vocab, SRS methods expect Vocab
+      SRS.markCorrect(this);
       LoggerService().d(
         'WordVocab._submitAnswerLogic: SRS.markCorrect called for "$word"',
       );
@@ -77,7 +79,7 @@ class WordVocab extends Vocab {
         LoggerService().w(
           'WordVocab._submitAnswerLogic: Incorrect answer for "$word"',
         );
-        SRS.markWrong(this); // 'this' is a Vocab, SRS methods expect Vocab
+        SRS.markWrong(this);
         LoggerService().d(
           'WordVocab._submitAnswerLogic: SRS.markWrong called for "$word"',
         );
@@ -87,7 +89,12 @@ class WordVocab extends Vocab {
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
-    LoggerService().d('WordVocab.buildFormFields called for word: $word');
+    LoggerService().d(
+      'WordVocab.buildFormFields called for word: $word, notes: $notes',
+    );
+    // Note: A general notes field might be added by the AddEditVocabScreen itself,
+    // or if each vocab type has specific notes, it could be handled here.
+    // Assuming general notes are handled elsewhere or via a shared method in Vocab.
     return [
       _LabeledField('Word (kanji/word)', _wordController),
       const SizedBox(height: 10),
@@ -98,6 +105,10 @@ class WordVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Meanings/English (comma separated)', _meaningsController),
       const SizedBox(height: 10),
+      // If you want a notes field specific to WordVocab or controlled here:
+      // _LabeledField('Notes', TextEditingController(text: notes)..addListener(() {
+      //   setState(() => notes = (TextEditingController(text: notes)).text);
+      // })),
     ];
   }
 
@@ -110,6 +121,14 @@ class WordVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
+      if (notes.isNotEmpty) // Display notes if they exist
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            "Notes: $notes",
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
       const SizedBox(height: 10),
       TextField(
         controller: _readingAnswerController,
@@ -180,22 +199,23 @@ class WordVocab extends Vocab {
     return word;
   }
 
-  // This displaySubtext does not use level or nextReview, so it's fine.
   @override
   String displaySubtext() {
     String readingSub = readings.join(', ');
     String meaningSub = meanings.join(', ');
-    if (readingSub.isEmpty && meaningSub.isEmpty) return '';
-    if (readingSub.isEmpty) return meaningSub;
-    if (meaningSub.isEmpty) return readingSub;
-    return '$readingSub - $meaningSub';
+    List<String> parts = [];
+    if (readingSub.isNotEmpty) parts.add(readingSub);
+    if (meaningSub.isNotEmpty) parts.add(meaningSub);
+    if (notes.isNotEmpty) parts.add('Notes: $notes');
+
+    return parts.join(' | ');
   }
 
-  // This displaySummary calls super.displaySummary() which is updated.
   @override
   String displaySummary() {
     String readingSummary = readings.isNotEmpty ? readings.join(', ') : 'N/A';
     String meaningSummary = meanings.isNotEmpty ? meanings.join(', ') : 'N/A';
+    // super.displaySummary() already includes notes now.
     return 'Word: $word (Reading: $readingSummary, Meaning: $meaningSummary)\n${super.displaySummary()}';
   }
 
@@ -214,12 +234,12 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     LoggerService().i(
-      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings, level=${meta.level}',
+      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
     );
-    // meta is already part of 'this' and will be saved by addToBox
     await super.addToBox();
   }
 
+  // TODO: Add notes controller in all subclasses for adding and editing
   @override
   Future<void> save() async {
     LoggerService().d('WordVocab.save called for current word: $word');
@@ -235,45 +255,42 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     LoggerService().i(
-      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings, level=${meta.level}',
+      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
     );
-    // meta is already part of 'this' and will be saved by super.save()
     await super.save();
   }
 
   @override
   String toString() {
-    // Updated to use meta
-    return 'WordVocab{word: $word, readings: $readings, meanings: $meanings, ${meta.toString()}}';
+    return 'WordVocab{word: $word, readings: $readings, meanings: $meanings, notes: $notes, ${meta.toString()}}';
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      super == other && // super == other now compares keys and meta
+      super == other &&
           other is WordVocab &&
           runtimeType == other.runtimeType &&
           word == other.word &&
           listEquals(readings, other.readings) &&
           listEquals(meanings, other.meanings);
 
+  // notes comparison is handled by super == other
+
   @override
   int get hashCode =>
-      super.hashCode ^ // super.hashCode now includes meta
+      super.hashCode ^
       word.hashCode ^
       readings.fold(0, (prev, item) => prev ^ item.hashCode) ^
       meanings.fold(0, (prev, item) => prev ^ item.hashCode);
 
+  // notes hash is included in super.hashCode
+
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('WordVocab.toJson called for word: $word');
-    final Map<String, dynamic> json = super.toJson(); // Gets 'type' and 'meta'
-    json.addAll({
-      // Add WordVocab specific fields
-      'word': word,
-      'readings': readings,
-      'meanings': meanings,
-    });
+    final json = super.toJson(); // Gets 'type', 'notes', and 'meta'
+    json.addAll({'word': word, 'readings': readings, 'meanings': meanings});
     return json;
   }
 
@@ -283,16 +300,19 @@ class WordVocab extends Vocab {
     final metaJson = json['meta'] as Map<String, dynamic>?;
     final vocabMeta = metaJson != null
         ? VocabMeta.fromJson(metaJson)
-        : VocabMeta(); // Default if null
+        : VocabMeta();
+
+    final notes = json['notes'] as String? ?? ''; // Extract notes
 
     final vocab = WordVocab(
       word: json['word'] as String,
       readings: List<String>.from(json['readings'] as List<dynamic>),
       meanings: List<String>.from(json['meanings'] as List<dynamic>),
       meta: vocabMeta,
+      notes: notes,
     );
     LoggerService().i(
-      'WordVocab created from json: ${vocab.word}, level: ${vocab.meta.level}',
+      'WordVocab created from json: ${vocab.word}, notes: ${vocab.notes}, level: ${vocab.meta.level}',
     );
     return vocab;
   }

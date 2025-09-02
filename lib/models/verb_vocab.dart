@@ -2,10 +2,10 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 6)
 class VerbVocab extends Vocab {
-  @HiveField(2) // Index changed from 4
+  @HiveField(3)
   VerbForm plainVerb;
 
-  @HiveField(3) // Index changed from 5
+  @HiveField(4)
   Map<String, VerbForm> verbForms; // Key is the form name e.g., "Past Polite"
 
   late TextEditingController _plainVerbWordController;
@@ -19,8 +19,12 @@ class VerbVocab extends Vocab {
   String _readingFeedback = '';
   String _meaningFeedback = '';
 
-  VerbVocab({required this.plainVerb, required this.verbForms, super.meta})
-    : super(type: VocabType.verb) {
+  VerbVocab({
+    required this.plainVerb,
+    required this.verbForms,
+    super.meta,
+    super.notes,
+  }) : super(type: VocabType.verb) {
     LoggerService().d(
       'VerbVocab constructor: plainVerb=${plainVerb.verbWord}, verbForms count=${verbForms.length}, '
       'meta: $meta',
@@ -118,6 +122,14 @@ class VerbVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
+      if (notes.isNotEmpty) // Display notes if they exist
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            "Notes: $notes",
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
       const SizedBox(height: 10),
       TextField(
         controller: _readingAnswerController,
@@ -200,6 +212,7 @@ class VerbVocab extends Vocab {
     if (plainVerbSubtext.isNotEmpty) parts.add(plainVerbSubtext);
     parts.add(formsCount);
     if (baseSubtext.isNotEmpty) parts.add(baseSubtext);
+    if (notes.isNotEmpty) parts.add('Notes: $notes');
 
     return parts.join(' | ');
   }
@@ -286,6 +299,8 @@ class VerbVocab extends Vocab {
         ? VocabMeta.fromJson(metaJson)
         : VocabMeta(); // Default if null
 
+    final notes = json['notes'] as String? ?? ''; // Extract notes
+
     final plainVerbData = json['plainVerb'] as Map<String, dynamic>?;
     if (plainVerbData == null) {
       final errorMsg =
@@ -309,6 +324,7 @@ class VerbVocab extends Vocab {
       plainVerb: plainVerb,
       verbForms: verbForms,
       meta: vocabMeta, // Pass the parsed meta object
+      notes: notes,
     );
 
     LoggerService().i(
