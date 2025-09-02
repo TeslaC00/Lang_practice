@@ -21,6 +21,10 @@ class LoggerService {
     final documentsDir = await getApplicationDocumentsDirectory();
     _logFile = File('${documentsDir.path}/app_logs.txt');
 
+    if (!await _logFile!.exists()) {
+      await _logFile!.create(recursive: true);
+    }
+
     _logger = Logger(
       printer: PrettyPrinter(
         methodCount: 1,

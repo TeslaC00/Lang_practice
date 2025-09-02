@@ -93,6 +93,10 @@ Future<void> importData(BuildContext context) async {
         newVocabsCount++;
       }
     }
+    // Clear cache to get review of new data
+    final cache = Hive.box<dynamic>('cacheBox');
+    cache.clear();
+
     LoggerService().i(
       "Data imported successfully. Added $newVocabsCount new vocabs.",
     ); // Added log
