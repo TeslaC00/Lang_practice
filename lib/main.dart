@@ -28,6 +28,7 @@ Future<void> main() async {
       Hive.registerAdapter(VerbFormAdapter());
       Hive.registerAdapter(VerbVocabAdapter());
       await Hive.openBox<Vocab>('vocabBox');
+      await Hive.openBox<dynamic>('cacheBox');
 
       LoggerService().i("Application Started"); // Example usage
 

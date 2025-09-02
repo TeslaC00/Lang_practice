@@ -1,9 +1,13 @@
 // lib/services/srs.dart
 // ----------------------
+import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:lang_practice/models/vocab.dart';
 
 class SRS {
+  // reactive count - UI
+  static final ValueNotifier<int> dueCount = ValueNotifier(0);
+
   // Simple intervals tuned for once-a-day usage.
   static const List<Duration> _levelIntervals = <Duration>[
     Duration(hours: 0), // L0 - due immediately
@@ -25,7 +29,8 @@ class SRS {
   }
 
   // Don't increase vocab level for each correct answer
-  static void markCorrect(Vocab v) {
+  static Future<void> markCorrect(Vocab v) async {
+    v.dispose();
     v.meta.correctTimesCounter++;
     v.meta.totalCorrectTimes++;
     v.meta.lastReview = DateTime.now();
@@ -42,10 +47,16 @@ class SRS {
     }
 
     v.meta.nextReview = DateTime.now().add(intervalForLevel(v.meta.level));
-    v.save();
+    await v.save();
+
+    // Remove from today's cache
+    final cache = Hive.box<dynamic>('cacheBox');
+    await cache.delete(v.key);
+    dueCount.value = cache.values.whereType<int>().length;
   }
 
-  static void markWrong(Vocab v) {
+  static Future<void> markWrong(Vocab v) async {
+    v.dispose();
     v.meta.wrongTimesCounter++;
     v.meta.totalWrongTimes++;
     v.meta.lastReview = DateTime.now();
@@ -64,12 +75,30 @@ class SRS {
     v.meta.nextReview = DateTime.now().add(
       const Duration(hours: 6),
     ); // quick comeback after a miss
-    v.save();
+    await v.save();
+
+    // Remove from today's cache
+    final cache = Hive.box<dynamic>('cacheBox');
+    await cache.delete(v.key);
+    dueCount.value = cache.values.whereType<int>().length;
   }
 
-  static Future<List<Vocab>> getDues({int maxReviewPerDay = 30}) async {
-    final box = Hive.box<Vocab>('vocabBox');
+  static Future<void> getDailyDues({int maxReviewPerDay = 30}) async {
     final now = DateTime.now();
+    final box = Hive.box<Vocab>('vocabBox');
+    final cache = Hive.box<dynamic>('cacheBox');
+
+    final lastDate = cache.get('lastDate') as String?;
+    final todayKey = "${now.year}-${now.month}-${now.day}";
+
+    if (lastDate == todayKey) {
+      dueCount.value = cache.values.whereType<int>().length;
+      return; // already initialized
+    }
+
+    // Regenerate dues
+    await cache.clear();
+
     final result = <Vocab>[];
     final highLevel = <Vocab>[];
     final oldLevel0 = <Vocab>[];
@@ -88,25 +117,33 @@ class SRS {
     }
 
     if (highLevel.length >= maxReviewPerDay) {
-      return highLevel.sublist(0, maxReviewPerDay);
+      result.addAll(highLevel.sublist(0, maxReviewPerDay));
+    } else {
+      result.addAll(highLevel);
+      if (result.length < maxReviewPerDay) {
+        result.addAll(oldLevel0.take(maxReviewPerDay - result.length));
+      }
+      if (result.length < maxReviewPerDay) {
+        result.addAll(newLevel0.take(maxReviewPerDay - result.length));
+      }
     }
 
-    result.addAll(highLevel);
-
-    if (result.length < maxReviewPerDay) {
-      result.addAll(oldLevel0.take(maxReviewPerDay - result.length));
+    for (final v in result) {
+      await cache.put(v.key as int, v.key as int);
     }
+    await cache.put('lastDate', todayKey);
 
-    if (result.length < maxReviewPerDay) {
-      result.addAll(newLevel0.take(maxReviewPerDay - result.length));
-    }
-
-    return result;
+    dueCount.value = result.length;
   }
 
-  static Future<int> getDueCont({int maxReviewPerDay = 30}) async {
-    final dues = await SRS.getDues(maxReviewPerDay: maxReviewPerDay);
-    return dues.length;
+  static Future<List<Vocab>> getDues({int maxReviewPerDay = 30}) async {
+    await getDailyDues(maxReviewPerDay: maxReviewPerDay);
+
+    final box = Hive.box<Vocab>('vocabBox');
+    final cache = Hive.box<dynamic>('cacheBox');
+
+    final ids = cache.values.whereType<int>().toList();
+    return ids.map((id) => box.get(id)!).toList();
   }
 }
 

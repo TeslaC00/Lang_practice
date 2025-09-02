@@ -49,12 +49,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   @override
-  void dispose() {
-    _current?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (_current == null) {
       return Scaffold(

@@ -20,16 +20,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int dueCount = 0;
 
-  void _updateDueCount() {
-    setState(() async {
-      dueCount = await SRS.getDueCont();
+  Future<void> _updateDues() async {
+    await SRS.getDailyDues();
+    if (!mounted) return;
+    setState(() {
+      dueCount = SRS.dueCount.value;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _updateDueCount();
+    _updateDues();
   }
 
   @override
@@ -40,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () async => _updateDueCount(),
+              onRefresh: () async => _updateDues(),
               child: SingleChildScrollView(
                 // needed for refresh indicator
                 physics: const AlwaysScrollableScrollPhysics(),
