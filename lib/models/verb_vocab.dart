@@ -11,7 +11,7 @@ class VerbVocab extends Vocab {
   late TextEditingController _plainVerbWordController;
   late TextEditingController _plainVerbReadingController;
   late TextEditingController _plainVerbMeaningController;
-  late TextEditingController _notesController; // Added
+  late TextEditingController _notesController;
 
   // Review screen controllers
   late TextEditingController _readingAnswerController;
@@ -35,9 +35,9 @@ class VerbVocab extends Vocab {
       text: plainVerb.reading,
     );
     _plainVerbMeaningController = TextEditingController(
-      text: plainVerb.meaning,
+      text: plainVerb.meanings.join(', '),
     );
-    _notesController = TextEditingController(text: notes); // Added
+    _notesController = TextEditingController(text: notes);
     _readingAnswerController = TextEditingController();
     _meaningAnswerController = TextEditingController();
   }
@@ -48,10 +48,9 @@ class VerbVocab extends Vocab {
     _plainVerbWordController.dispose();
     _plainVerbReadingController.dispose();
     _plainVerbMeaningController.dispose();
-    _notesController.dispose(); // Added
+    _notesController.dispose();
     _readingAnswerController.dispose();
     _meaningAnswerController.dispose();
-    // if Vocab has a dispose, call super.dispose();
   }
 
   void _submitReviewAnswerLogic(
@@ -69,7 +68,7 @@ class VerbVocab extends Vocab {
       LoggerService().i(
         'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
       );
-      SRS.markCorrect(this); // SRS needs to be aware of VocabMeta
+      SRS.markCorrect(this);
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
@@ -79,7 +78,7 @@ class VerbVocab extends Vocab {
         LoggerService().i(
           'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswer. Marking wrong.',
         );
-        SRS.markWrong(this); // SRS needs to be aware of VocabMeta
+        SRS.markWrong(this);
       }
     }
   }
@@ -96,7 +95,7 @@ class VerbVocab extends Vocab {
       ),
       const SizedBox(height: 10),
       _LabeledField(
-        'Plain Verb Meaning (e.g., to eat)',
+        'Plain Verb Meaning(s) (e.g., to eat, to consume - comma separated)',
         _plainVerbMeaningController,
       ),
       const SizedBox(height: 10),
@@ -111,7 +110,7 @@ class VerbVocab extends Vocab {
         ),
       );
     });
-    formWidgets.addAll([ // Added
+    formWidgets.addAll([
       const SizedBox(height: 10),
       _LabeledField('Notes', _notesController),
     ]);
@@ -129,7 +128,7 @@ class VerbVocab extends Vocab {
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
-      if (notes.isNotEmpty) // Display notes if they exist
+      if (notes.isNotEmpty)
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
@@ -209,10 +208,8 @@ class VerbVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    // Uses super.displaySubtext() which is already updated for VocabMeta
     String baseSubtext = super.displaySubtext();
-    String plainVerbSubtext = plainVerb
-        .displaySubtext(); // Assuming VerbForm has displaySubtext
+    String plainVerbSubtext = plainVerb.displaySubtext();
     String formsCount = 'Forms: ${verbForms.length}';
 
     List<String> parts = [];
@@ -235,27 +232,37 @@ class VerbVocab extends Vocab {
     LoggerService().d(
       'VerbVocab add: Saving plainVerb. Word: "${_plainVerbWordController.text}", '
       'Reading: "${_plainVerbReadingController.text}", '
-      'Meaning: "${_plainVerbMeaningController.text}"',
+      'Meaning(s) from input: "${_plainVerbMeaningController.text}"',
     );
-    plainVerb.verbWord = _plainVerbWordController.text;
-    plainVerb.reading = _plainVerbReadingController.text;
-    plainVerb.meaning = _plainVerbMeaningController.text;
-    notes = _notesController.text; // Added
+    plainVerb.verbWord = _plainVerbWordController.text.trim();
+    plainVerb.reading = _plainVerbReadingController.text.trim();
+    // Split comma-separated string from TextField into List<String>
+    plainVerb.meanings = _plainVerbMeaningController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty) // Remove empty strings if any
+        .toList();
+    notes = _notesController.text.trim();
     await super.addToBox();
-    LoggerService().i('VerbVocab add: Added to box. Key: $key');
+    LoggerService().i('VerbVocab add: Added to box. Key: $key. Meanings: ${plainVerb.meanings}');
   }
 
   @override
   Future<void> save() async {
     LoggerService().d(
-      'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning: "${_plainVerbMeaningController.text}"',
+      'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning(s) from input: "${_plainVerbMeaningController.text}"',
     );
-    plainVerb.verbWord = _plainVerbWordController.text;
-    plainVerb.reading = _plainVerbReadingController.text;
-    plainVerb.meaning = _plainVerbMeaningController.text;
-    notes = _notesController.text; // Added
+    plainVerb.verbWord = _plainVerbWordController.text.trim();
+    plainVerb.reading = _plainVerbReadingController.text.trim();
+    // Split comma-separated string from TextField into List<String>
+    plainVerb.meanings = _plainVerbMeaningController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty) // Remove empty strings if any
+        .toList();
+    notes = _notesController.text.trim();
     await super.save();
-    LoggerService().i('VerbVocab save: Save complete. Key: $key');
+    LoggerService().i('VerbVocab save: Save complete. Key: $key. Meanings: ${plainVerb.meanings}');
   }
 
   @override
