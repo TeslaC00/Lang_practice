@@ -13,21 +13,14 @@ class VerbForm extends HiveObject {
     required this.verbWord,
     required this.readings,
     required this.meanings, // Changed to List<String>
-  }) {
-    LoggerService().d(
-      'VerbForm created: verbWord=$verbWord, reading=${readings.join(', ')}, meaning=${meanings.join(", ")}',
-    );
-  }
+  });
 
   String displayTitle() {
-    LoggerService().d('VerbForm.displayTitle called');
     final title = verbWord;
-    LoggerService().d('VerbForm.displayTitle returning: $title');
     return title;
   }
 
   String displaySubtext() {
-    LoggerService().d('VerbForm.displaySubtext called');
     String result;
     final meaningText = meanings.join(', ');
     final readingText = readings.join(', ');
@@ -40,34 +33,26 @@ class VerbForm extends HiveObject {
     } else {
       result = '$readingText - $meaningText';
     }
-    LoggerService().d('VerbForm.displaySubtext returning: $result');
     return result;
   }
 
   String displaySummary() {
-    LoggerService().d('VerbForm.displaySummary called');
     final meaningText = meanings.join(', ');
     final summary = '$verbWord ($readings) - $meaningText';
-    LoggerService().d('VerbForm.displaySummary returning: $summary');
     return summary;
   }
 
   // ToJson method
   Map<String, dynamic> toJson() {
-    LoggerService().d('VerbForm.toJson called for verbWord=$verbWord');
     return {'verbWord': verbWord, 'readings': readings, 'meanings': meanings};
   }
 
   // FromJson factory constructor
   factory VerbForm.fromJson(Map<String, dynamic> json) {
-    LoggerService().d('VerbForm.fromJson called with json: $json');
     final instance = VerbForm(
       verbWord: json['verbWord'] as String,
       readings: List<String>.from(json['readings'] as List<dynamic>),
       meanings: List<String>.from(json['meanings'] as List<dynamic>),
-    );
-    LoggerService().d(
-      'VerbForm.fromJson created instance: ${instance.verbWord}',
     );
     return instance;
   }

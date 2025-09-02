@@ -26,10 +26,6 @@ class VerbVocab extends Vocab {
     super.meta,
     super.notes,
   }) : super(type: VocabType.verb) {
-    LoggerService().d(
-      'VerbVocab constructor: plainVerb=${plainVerb.verbWord}, verbForms count=${verbForms.length}, '
-      'meta: $meta',
-    );
     _plainVerbWordController = TextEditingController(text: plainVerb.verbWord);
     _plainVerbReadingController = TextEditingController(
       text: plainVerb.readings.join(', '),
@@ -44,7 +40,6 @@ class VerbVocab extends Vocab {
 
   @override
   void dispose() {
-    LoggerService().d('VerbVocab dispose: Disposing controllers');
     _plainVerbWordController.dispose();
     _plainVerbReadingController.dispose();
     _plainVerbMeaningController.dispose();
@@ -59,27 +54,17 @@ class VerbVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
-    LoggerService().d(
-      'VerbVocab _submitReviewAnswerLogic: userAnswer="$userAnswer", correctAnswer="${correctAnswers.join(', ')}"',
-    );
     // SRS interaction will now use this.meta
     if (correctAnswers
         .map((ans) => ans.trim().toLowerCase())
         .contains(userAnswer)) {
       feedbackSetter("Correct!");
-      LoggerService().d(
-        'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
-      );
       SRS.markCorrect(this);
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
-        LoggerService().w('VerbVocab _submitReviewAnswerLogic: Empty answer.');
       } else {
         feedbackSetter("Incorrect. Correct: $correctAnswers");
-        LoggerService().d(
-          'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswers. Marking wrong.',
-        );
         SRS.markWrong(this);
       }
     }
@@ -87,7 +72,6 @@ class VerbVocab extends Vocab {
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
-    LoggerService().d('VerbVocab buildFormFields entry');
     List<Widget> formWidgets = [
       _LabeledField('Plain Verb Word (e.g., 食べる)', _plainVerbWordController),
       const SizedBox(height: 10),
@@ -121,7 +105,6 @@ class VerbVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
-    LoggerService().d('VerbVocab buildReviewFields entry');
     return [
       Text(
         plainVerb.verbWord,
@@ -227,11 +210,6 @@ class VerbVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    LoggerService().d(
-      'VerbVocab add: Saving plainVerb. Word: "${_plainVerbWordController.text}", '
-      'Reading: "${_plainVerbReadingController.text}", '
-      'Meaning(s) from input: "${_plainVerbMeaningController.text}"',
-    );
     plainVerb.verbWord = _plainVerbWordController.text.trim();
     plainVerb.readings = _plainVerbReadingController.text
         .split(',')
@@ -245,16 +223,10 @@ class VerbVocab extends Vocab {
         .toList();
     notes = _notesController.text.trim();
     await super.addToBox();
-    LoggerService().i(
-      'VerbVocab add: Added to box. Key: $key. Meanings: ${plainVerb.meanings}',
-    );
   }
 
   @override
   Future<void> save() async {
-    LoggerService().d(
-      'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning(s) from input: "${_plainVerbMeaningController.text}"',
-    );
     plainVerb.verbWord = _plainVerbWordController.text.trim();
     plainVerb.readings = _plainVerbReadingController.text
         .split(',')
@@ -268,9 +240,6 @@ class VerbVocab extends Vocab {
         .toList();
     notes = _notesController.text.trim();
     await super.save();
-    LoggerService().i(
-      'VerbVocab save: Save complete. Key: $key. Meanings: ${plainVerb.meanings}',
-    );
   }
 
   @override
@@ -293,7 +262,6 @@ class VerbVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
-    LoggerService().d('VerbVocab toJson entry');
     final jsonMap = super.toJson(); // Gets 'type' and 'meta'
     jsonMap.addAll({
       'plainVerb': plainVerb.toJson(),
@@ -305,16 +273,10 @@ class VerbVocab extends Vocab {
   }
 
   static VerbVocab fromJson(Map<String, dynamic> json) {
-    LoggerService().d(
-      'VerbVocab fromJson: Attempting to create VerbVocab from JSON: '
-      '${json.toString().substring(0, json.toString().length > 200 ? 200 : json.toString().length)}',
-    );
-
     final typeStr = json['type'] as String?;
     if (typeStr != VocabType.verb.name) {
       final errorMsg =
           'VerbVocab.fromJson error: Invalid type. Expected ${VocabType.verb.name}, got $typeStr';
-      LoggerService().e(errorMsg, 'Invalid type in JSON', StackTrace.current);
       throw ArgumentError(errorMsg);
     }
 
@@ -329,11 +291,6 @@ class VerbVocab extends Vocab {
     if (plainVerbData == null) {
       final errorMsg =
           'VerbVocab.fromJson error: "plainVerb" field is missing or not a map.';
-      LoggerService().e(
-        errorMsg,
-        'Missing plainVerb in JSON',
-        StackTrace.current,
-      );
       throw ArgumentError(errorMsg);
     }
     final VerbForm plainVerb = VerbForm.fromJson(plainVerbData);
@@ -349,10 +306,6 @@ class VerbVocab extends Vocab {
       verbForms: verbForms,
       meta: vocabMeta, // Pass the parsed meta object
       notes: notes,
-    );
-
-    LoggerService().d(
-      'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord} with meta: ${vocab.meta}',
     );
     return vocab;
   }

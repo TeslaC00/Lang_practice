@@ -27,9 +27,6 @@ class TimeVocab extends Vocab {
     super.meta,
     super.notes,
   }) : super(type: VocabType.time) {
-    LoggerService().d(
-      'TimeVocab created: $timeWord, reading: ${readings.join(', ')}, time: $timeString, meta: $meta',
-    );
     _timeWordController = TextEditingController(text: timeWord);
     _readingController = TextEditingController(text: readings.join(', '));
     _timeValueController = TextEditingController(text: timeString);
@@ -42,7 +39,6 @@ class TimeVocab extends Vocab {
 
   @override
   void dispose() {
-    LoggerService().d('Disposing TimeVocab: $timeWord');
     _timeWordController.dispose();
     _readingController.dispose();
     _timeValueController.dispose();
@@ -59,23 +55,15 @@ class TimeVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
-    LoggerService().d(
-      'Submitting answer for reading. User: "$userAnswer", Correct: "${correctAnswers.join(', ')}"',
-    );
     if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
       feedbackSetter("Correct!");
       SRS.markCorrect(this);
-      LoggerService().d('Reading answer correct for "$timeWord"');
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
-        LoggerService().w('Reading answer empty for "$timeWord"');
       } else {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
         SRS.markWrong(this);
-        LoggerService().d(
-          'Reading answer incorrect for "$timeWord". User: "$userAnswer", Correct: "${correctAnswers.join(', ')}"',
-        );
       }
     }
   }
@@ -86,26 +74,18 @@ class TimeVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswerString = controller.text.trim();
-    LoggerService().d(
-      'Submitting time answer. User: "$userAnswerString", Correct: $correctTimeString',
-    );
 
     if (userAnswerString == correctTimeString) {
       feedbackSetter("Correct!");
       SRS.markCorrect(this); // Assuming marking correct for the whole item
-      LoggerService().d('Time answer correct for "$timeWord"');
     } else {
       feedbackSetter("Incorrect. Correct: $correctTimeString");
       SRS.markWrong(this); // Assuming marking wrong for the whole item
-      LoggerService().d(
-        'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: $correctTimeString',
-      );
     }
   }
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
-    LoggerService().d('Building form fields for TimeVocab: $timeWord');
     return [
       _LabeledField('Time Word (e.g., 7:30 AM, 今)', _timeWordController),
       const SizedBox(height: 10),
@@ -113,13 +93,13 @@ class TimeVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 3), // Added notes field
+      _LabeledField('Notes', _notesController, maxLines: 3),
+      // Added notes field
     ];
   }
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
-    LoggerService().d('Building review fields for TimeVocab: $timeWord');
     return [
       Text(
         timeWord,
@@ -220,9 +200,6 @@ class TimeVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    LoggerService().d(
-      'Adding TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
-    );
     timeWord = _timeWordController.text;
     readings = _readingController.text
         .split(',')
@@ -233,14 +210,10 @@ class TimeVocab extends Vocab {
     notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
     await super.addToBox();
-    LoggerService().i('TimeVocab "$timeWord" added.');
   }
 
   @override
   Future<void> save() async {
-    LoggerService().d(
-      'Saving TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
-    );
     timeWord = _timeWordController.text;
     readings = _readingController.text
         .split(',')
@@ -251,7 +224,6 @@ class TimeVocab extends Vocab {
     notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
     await super.save();
-    LoggerService().i('TimeVocab "$timeWord" saved.');
   }
 
   @override
@@ -279,7 +251,6 @@ class TimeVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
-    LoggerService().d('Converting TimeVocab to JSON: $timeWord');
     final json = super.toJson(); // Gets 'type', 'meta', and 'notes'
     json.addAll({
       'timeWord': timeWord,
@@ -290,11 +261,7 @@ class TimeVocab extends Vocab {
   }
 
   static TimeVocab fromJson(Map<String, dynamic> json) {
-    LoggerService().d(
-      'Attempting to create TimeVocab from JSON: ${json['timeWord']}',
-    );
     if (json['type'] != VocabType.time.name) {
-      LoggerService().e('Invalid type for TimeVocab.fromJson: ${json['type']}');
       throw ArgumentError(
         'Invalid type for TimeVocab.fromJson: ${json['type']}',
       );
@@ -317,7 +284,6 @@ class TimeVocab extends Vocab {
     );
     // Level and nextReview are now part of meta and handled by VocabMeta.fromJson
     // and Vocab constructor
-    LoggerService().d('TimeVocab created from JSON: ${vocab.timeWord}');
     return vocab;
   }
 }

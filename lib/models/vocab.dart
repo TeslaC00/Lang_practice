@@ -8,7 +8,6 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:lang_practice/models/vocab_meta.dart';
 
-import '../services/logger_service.dart';
 import '../services/srs.dart';
 
 part 'vocab.g.dart';
@@ -46,14 +45,9 @@ abstract class Vocab extends HiveObject {
   String notes;
 
   Vocab({required this.type, VocabMeta? meta, this.notes = ''})
-    : meta = meta ?? VocabMeta() {
-    LoggerService().d(
-      'Vocab constructor called for type: $type, notes: $notes, level: ${this.meta.level}, key: ${key?.toString() ?? "new"}',
-    );
-  }
+    : meta = meta ?? VocabMeta();
 
   static Vocab create(VocabType type) {
-    LoggerService().d('Vocab.create called for type: $type');
     // VocabMeta will be initialized with defaults by the Vocab constructor
     // Notes will default to ''
     switch (type) {
@@ -116,15 +110,10 @@ abstract class Vocab extends HiveObject {
   }
 
   static Vocab fromJson(Map<String, dynamic> json) {
-    final jsonString = json.toString();
-    LoggerService().d(
-      'Vocab.fromJson called with json: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}',
-    );
     final typeStr = json['type'] as String?;
     if (typeStr == null) {
       final errorMsg =
           'Vocab.fromJson error: type field is missing or null in JSON.';
-      LoggerService().e(errorMsg, 'Missing type in JSON', StackTrace.current);
       throw ArgumentError(errorMsg);
     }
 
@@ -132,14 +121,12 @@ abstract class Vocab extends HiveObject {
       (t) => t.name == typeStr,
       orElse: () {
         final errorMsg = 'Vocab.fromJson error: Unknown vocab type: $typeStr';
-        LoggerService().e(errorMsg, 'Unknown vocab type', StackTrace.current);
         throw ArgumentError(errorMsg);
       },
     );
     // notes will be extracted by subclasses and passed to their constructor.
     // meta will be extracted by subclasses and passed.
 
-    LoggerService().i('Vocab.fromJson: routing to $type.fromJson.');
     switch (type) {
       case VocabType.word:
         return WordVocab.fromJson(json);

@@ -16,10 +16,6 @@ class WordVocab extends Vocab {
   late TextEditingController _meaningAnswerController;
   late TextEditingController _notesController; // Added notes controller
 
-  // Notes controller is no longer needed here if notes are handled by a general field in Vocab
-  // or AddEditScreen directly uses vocab.notes.
-  // However, if buildFormFields for WordVocab specifically adds a notes field, it would use vocab.notes.
-
   String _readingFeedback = '';
   String _meaningFeedback = '';
 
@@ -30,9 +26,6 @@ class WordVocab extends Vocab {
     super.meta,
     super.notes,
   }) : super(type: VocabType.word) {
-    LoggerService().d(
-      'WordVocab created: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
-    );
     _wordController = TextEditingController(text: word);
     _meaningsController = TextEditingController(text: meanings.join(', '));
     _readingsController = TextEditingController(text: readings.join(', '));
@@ -45,7 +38,6 @@ class WordVocab extends Vocab {
 
   @override
   void dispose() {
-    LoggerService().d('WordVocab.dispose called for word: $word');
     _wordController.dispose();
     _meaningsController.dispose();
     _readingsController.dispose();
@@ -61,45 +53,21 @@ class WordVocab extends Vocab {
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
-    LoggerService().d(
-      'WordVocab._submitAnswerLogic: userAnswer="$userAnswer", correctAnswers="$correctAnswers" for word="$word"',
-    );
     if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
       feedbackSetter("Correct!");
-      LoggerService().i(
-        'WordVocab._submitAnswerLogic: Correct answer for "$word"',
-      );
       SRS.markCorrect(this);
-      LoggerService().d(
-        'WordVocab._submitAnswerLogic: SRS.markCorrect called for "$word"',
-      );
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
-        LoggerService().w(
-          'WordVocab._submitAnswerLogic: Empty answer for "$word"',
-        );
       } else {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
-        LoggerService().w(
-          'WordVocab._submitAnswerLogic: Incorrect answer for "$word"',
-        );
         SRS.markWrong(this);
-        LoggerService().d(
-          'WordVocab._submitAnswerLogic: SRS.markWrong called for "$word"',
-        );
       }
     }
   }
 
   @override
   List<Widget> buildFormFields(StateSetter setState) {
-    LoggerService().d(
-      'WordVocab.buildFormFields called for word: $word, notes: $notes',
-    );
-    // Note: A general notes field might be added by the AddEditVocabScreen itself,
-    // or if each vocab type has specific notes, it could be handled here.
-    // Assuming general notes are handled elsewhere or via a shared method in Vocab.
     return [
       _LabeledField('Word (kanji/word)', _wordController),
       const SizedBox(height: 10),
@@ -117,7 +85,6 @@ class WordVocab extends Vocab {
 
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
-    LoggerService().d('WordVocab.buildReviewFields called for word: $word');
     return [
       Text(
         word,
@@ -224,7 +191,6 @@ class WordVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    LoggerService().d('WordVocab.add called for current word: $word');
     word = _wordController.text;
     readings = _readingsController.text
         .split(',')
@@ -237,15 +203,11 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     notes = _notesController.text; // Update notes from controller
-    LoggerService().i(
-      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
-    );
     await super.addToBox();
   }
 
   @override
   Future<void> save() async {
-    LoggerService().d('WordVocab.save called for current word: $word');
     word = _wordController.text;
     readings = _readingsController.text
         .split(',')
@@ -258,9 +220,6 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     notes = _notesController.text; // Update notes from controller
-    LoggerService().i(
-      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
-    );
     await super.save();
   }
 
@@ -292,15 +251,12 @@ class WordVocab extends Vocab {
 
   @override
   Map<String, dynamic> toJson() {
-    LoggerService().d('WordVocab.toJson called for word: $word');
     final json = super.toJson(); // Gets 'type', 'notes', and 'meta'
     json.addAll({'word': word, 'readings': readings, 'meanings': meanings});
     return json;
   }
 
   factory WordVocab.fromJson(Map<String, dynamic> json) {
-    LoggerService().d('WordVocab.fromJson called with json: $json');
-
     final metaJson = json['meta'] as Map<String, dynamic>?;
     final vocabMeta = metaJson != null
         ? VocabMeta.fromJson(metaJson)
