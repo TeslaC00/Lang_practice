@@ -315,9 +315,6 @@ class WordVocab extends Vocab {
       meta: vocabMeta,
       notes: notes,
     );
-    LoggerService().i(
-      'WordVocab created from json: ${vocab.word}, notes: ${vocab.notes}, level: ${vocab.meta.level}',
-    );
     return vocab;
   }
 }

@@ -53,7 +53,7 @@ abstract class Vocab extends HiveObject {
   }
 
   static Vocab create(VocabType type) {
-    LoggerService().i('Vocab.create called for type: $type');
+    LoggerService().d('Vocab.create called for type: $type');
     // VocabMeta will be initialized with defaults by the Vocab constructor
     // Notes will default to ''
     switch (type) {

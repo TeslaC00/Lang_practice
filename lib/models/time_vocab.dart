@@ -65,15 +65,15 @@ class TimeVocab extends Vocab {
     if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
       feedbackSetter("Correct!");
       SRS.markCorrect(this);
-      LoggerService().i('Reading answer correct for "$timeWord"');
+      LoggerService().d('Reading answer correct for "$timeWord"');
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
-        LoggerService().i('Reading answer empty for "$timeWord"');
+        LoggerService().w('Reading answer empty for "$timeWord"');
       } else {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
         SRS.markWrong(this);
-        LoggerService().i(
+        LoggerService().d(
           'Reading answer incorrect for "$timeWord". User: "$userAnswer", Correct: "${correctAnswers.join(', ')}"',
         );
       }
@@ -93,11 +93,11 @@ class TimeVocab extends Vocab {
     if (userAnswerString == correctTimeString) {
       feedbackSetter("Correct!");
       SRS.markCorrect(this); // Assuming marking correct for the whole item
-      LoggerService().i('Time answer correct for "$timeWord"');
+      LoggerService().d('Time answer correct for "$timeWord"');
     } else {
       feedbackSetter("Incorrect. Correct: $correctTimeString");
       SRS.markWrong(this); // Assuming marking wrong for the whole item
-      LoggerService().i(
+      LoggerService().d(
         'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: $correctTimeString',
       );
     }
@@ -317,7 +317,7 @@ class TimeVocab extends Vocab {
     );
     // Level and nextReview are now part of meta and handled by VocabMeta.fromJson
     // and Vocab constructor
-    LoggerService().i('TimeVocab created from JSON: ${vocab.timeWord}');
+    LoggerService().d('TimeVocab created from JSON: ${vocab.timeWord}');
     return vocab;
   }
 }

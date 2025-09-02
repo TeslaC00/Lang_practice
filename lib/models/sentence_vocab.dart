@@ -53,7 +53,7 @@ class SentenceVocab extends Vocab {
     );
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
-      LoggerService().i('SentenceVocab review: Correct for "$sentence"');
+      LoggerService().d('SentenceVocab review: Correct for "$sentence"');
       SRS.markCorrect(this); // 'this' refers to SentenceVocab instance
     } else {
       if (userAnswer.isEmpty) {
@@ -61,7 +61,7 @@ class SentenceVocab extends Vocab {
         LoggerService().w('SentenceVocab review: Empty answer for "$sentence"');
       } else {
         feedbackSetter("Incorrect. Correct: $correctAnswer");
-        LoggerService().w(
+        LoggerService().d(
           'SentenceVocab review: Incorrect for "$sentence". User: "$userAnswer", Correct: "$correctAnswer"',
         );
         SRS.markWrong(this); // 'this' refers to SentenceVocab instance
@@ -234,7 +234,7 @@ class SentenceVocab extends Vocab {
     );
     // Level and nextReview are now part of meta, no need to set them directly.
 
-    LoggerService().i(
+    LoggerService().d(
       'SentenceVocab created from JSON: "${vocab.sentence}", Level: ${vocab.meta.level}',
     );
     return vocab;

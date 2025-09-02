@@ -67,7 +67,7 @@ class VerbVocab extends Vocab {
         .map((ans) => ans.trim().toLowerCase())
         .contains(userAnswer)) {
       feedbackSetter("Correct!");
-      LoggerService().i(
+      LoggerService().d(
         'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
       );
       SRS.markCorrect(this);
@@ -77,7 +77,7 @@ class VerbVocab extends Vocab {
         LoggerService().w('VerbVocab _submitReviewAnswerLogic: Empty answer.');
       } else {
         feedbackSetter("Incorrect. Correct: $correctAnswers");
-        LoggerService().i(
+        LoggerService().d(
           'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswers. Marking wrong.',
         );
         SRS.markWrong(this);
@@ -351,7 +351,7 @@ class VerbVocab extends Vocab {
       notes: notes,
     );
 
-    LoggerService().i(
+    LoggerService().d(
       'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord} with meta: ${vocab.meta}',
     );
     return vocab;
