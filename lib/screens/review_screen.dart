@@ -20,18 +20,26 @@ class _ReviewScreenState extends State<ReviewScreen> {
   final _rng = Random();
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     index = 0;
-    due = await SRS.getDues(maxReviewPerDay: 40);
-    if (due.isEmpty) {
-      setState(() {
+    _loadDues();
+  }
+
+  Future<void> _loadDues() async {
+    final result = await SRS.getDues();
+
+    if (!mounted) return; // safeguard if widget is disposed
+
+    setState(() {
+      due = result;
+      if (due.isEmpty) {
         _current = null;
-      });
-    } else {
-      due.shuffle(_rng);
-      _nextQuestion();
-    }
+      } else {
+        due.shuffle(_rng);
+        _nextQuestion(); // no need for await here
+      }
+    });
   }
 
   void _nextQuestion() {
@@ -42,7 +50,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   void dispose() {
-    if (_current != null) _current!.dispose();
+    _current?.dispose();
     super.dispose();
   }
 
