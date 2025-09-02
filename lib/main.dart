@@ -9,6 +9,8 @@ import 'package:lang_practice/screens/home_screen.dart';
 import 'package:lang_practice/services/logger_service.dart'; // Import logger service
 import 'package:path_provider/path_provider.dart';
 
+import 'models/vocab_meta.dart';
+
 Future<void> main() async {
   runZonedGuarded(
     () async {
@@ -18,6 +20,7 @@ Future<void> main() async {
 
       final dir = await getApplicationDocumentsDirectory();
       await Hive.initFlutter(dir.path);
+      Hive.registerAdapter(VocabMetaAdapter());
       Hive.registerAdapter(VocabTypeAdapter());
       Hive.registerAdapter(WordVocabAdapter());
       Hive.registerAdapter(TimeVocabAdapter());

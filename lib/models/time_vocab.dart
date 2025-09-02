@@ -2,11 +2,11 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 3)
 class TimeVocab extends Vocab {
-  @HiveField(4)
+  @HiveField(2) // Adjusted index
   String timeWord;
-  @HiveField(5)
+  @HiveField(3) // Adjusted index
   String reading;
-  @HiveField(6)
+  @HiveField(4) // Adjusted index
   String timeString; // Stores a fixed time for HH:MM part.
 
   late TextEditingController _timeWordController;
@@ -23,9 +23,11 @@ class TimeVocab extends Vocab {
     required this.timeWord,
     required this.reading,
     required this.timeString,
+    super.meta, // Added meta
   }) : super(type: VocabType.time) {
+    // Pass meta to super
     LoggerService().d(
-      'TimeVocab created: $timeWord, reading: $reading, time: $timeString',
+      'TimeVocab created: $timeWord, reading: $reading, time: $timeString, meta: $meta',
     );
     _timeWordController = TextEditingController(text: timeWord);
     _readingController = TextEditingController(text: reading);
@@ -67,8 +69,7 @@ class TimeVocab extends Vocab {
         feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
         SRS.markWrong(this);
         LoggerService().i(
-          'Reading answer incorrect for "$timeWord". User: "$userAnswer", '
-          'Correct: "${correctAnswers.join(', ')}"',
+          'Reading answer incorrect for "$timeWord". User: "$userAnswer", Correct: "${correctAnswers.join(', ')}"',
         );
       }
     }
@@ -86,9 +87,11 @@ class TimeVocab extends Vocab {
 
     if (userAnswerString == correctTimeString) {
       feedbackSetter("Correct!");
+      SRS.markCorrect(this); // Assuming marking correct for the whole item
       LoggerService().i('Time answer correct for "$timeWord"');
     } else {
       feedbackSetter("Incorrect. Correct: $correctTimeString");
+      SRS.markWrong(this); // Assuming marking wrong for the whole item
       LoggerService().i(
         'Time answer incorrect for "$timeWord". User: "$userAnswerString", Correct: $correctTimeString',
       );
@@ -188,6 +191,8 @@ class TimeVocab extends Vocab {
 
   @override
   String displaySubtext() {
+    // This is specific to TimeVocab and doesn't use level/nextReview directly
+    // It calls super.displaySubtext() in displaySummary()
     return '$reading at $timeString';
   }
 
@@ -204,6 +209,7 @@ class TimeVocab extends Vocab {
     timeWord = _timeWordController.text;
     reading = _readingController.text;
     timeString = _timeValueController.text;
+    // meta is already part of the object, managed by Vocab class
     await super.addToBox();
     LoggerService().i('TimeVocab "$timeWord" added.');
   }
@@ -216,14 +222,15 @@ class TimeVocab extends Vocab {
     timeWord = _timeWordController.text;
     reading = _readingController.text;
     timeString = _timeValueController.text;
+    // meta is already part of the object, managed by Vocab class
     await super.save();
     LoggerService().i('TimeVocab "$timeWord" saved.');
   }
 
   @override
   String toString() {
-    return 'TimeVocab{timeWord: $timeWord, reading: $reading, '
-        'timeValue: $timeString, type: $type, level: $level, nextReview: $nextReview}';
+    // Relies on Vocab.toString() for meta details
+    return 'TimeVocab{timeWord: $timeWord, reading: $reading, timeValue: $timeString, ${super.toString()}}';
   }
 
   @override
@@ -246,17 +253,16 @@ class TimeVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('Converting TimeVocab to JSON: $timeWord');
-    return {
-      'type': type.name,
-      'level': level,
-      'nextReview': nextReview.toIso8601String(),
+    final json = super.toJson(); // Gets 'type' and 'meta'
+    json.addAll({
       'timeWord': timeWord,
       'reading': reading,
-      'timeString': timeString, // Store as HH:mm string
-    };
+      'timeString': timeString,
+    });
+    return json;
   }
 
-  factory TimeVocab.fromJson(Map<String, dynamic> json) {
+  static TimeVocab fromJson(Map<String, dynamic> json) {
     LoggerService().d(
       'Attempting to create TimeVocab from JSON: ${json['timeWord']}',
     );
@@ -266,15 +272,21 @@ class TimeVocab extends Vocab {
         'Invalid type for TimeVocab.fromJson: ${json['type']}',
       );
     }
+
+    // Parse meta from json
+    final metaJson = json['meta'] as Map<String, dynamic>?;
+    final vocabMeta = metaJson != null
+        ? VocabMeta.fromJson(metaJson)
+        : VocabMeta(); // Default if not present
+
     final vocab = TimeVocab(
       timeWord: json['timeWord'] as String,
       reading: json['reading'] as String,
-      timeString: json['timeString'] as String, // Parse from HH:mm string
+      timeString: json['timeString'] as String,
+      meta: vocabMeta, // Pass parsed meta
     );
-    vocab.level = (json['level'] as int?) ?? 0;
-    vocab.nextReview = json['nextReview'] != null
-        ? DateTime.parse(json['nextReview'] as String)
-        : DateTime.now();
+    // Level and nextReview are now part of meta and handled by VocabMeta.fromJson
+    // and Vocab constructor
     LoggerService().i('TimeVocab created from JSON: ${vocab.timeWord}');
     return vocab;
   }

@@ -25,15 +25,25 @@ class SRS {
 
   // Don't increase vocab level for each correct answer
   static void markCorrect(Vocab v) {
-    v.level = (v.level + 1).clamp(0, _levelIntervals.length);
-    v.nextReview = DateTime.now().add(intervalForLevel(v.level));
+    v.meta.level = (v.meta.level + 1).clamp(0, _levelIntervals.length -1); // Fixed clamp upper bound
+    v.meta.nextReview = DateTime.now().add(intervalForLevel(v.meta.level));
+    v.meta.lastReview = DateTime.now();
+    v.meta.totalCorrectTimes++;
+    v.meta.correctTimesCounter++;
+    v.meta.wrongTimesCounter = 0;
+    v.meta.isNew = false;
     v.save();
   }
 
   static void markWrong(Vocab v) {
-    v.level = (v.level - 1).clamp(0, _levelIntervals.length);
+    v.meta.level = (v.meta.level - 1).clamp(0, _levelIntervals.length -1); // Fixed clamp upper bound
     // quick comeback after a miss
-    v.nextReview = DateTime.now().add(const Duration(hours: 6));
+    v.meta.nextReview = DateTime.now().add(const Duration(hours: 6));
+    v.meta.lastReview = DateTime.now();
+    v.meta.totalWrongTimes++;
+    v.meta.wrongTimesCounter++;
+    v.meta.correctTimesCounter = 0;
+    v.meta.isNew = false;
     v.save();
   }
 }

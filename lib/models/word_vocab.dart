@@ -2,11 +2,11 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 2)
 class WordVocab extends Vocab {
-  @HiveField(4)
+  @HiveField(2) // Adjusted index
   String word;
-  @HiveField(5)
+  @HiveField(3) // Adjusted index
   List<String> readings;
-  @HiveField(6)
+  @HiveField(4) // Adjusted index
   List<String> meanings;
 
   late TextEditingController _wordController;
@@ -22,9 +22,12 @@ class WordVocab extends Vocab {
     required this.word,
     required this.readings,
     required this.meanings,
+    super.meta, // Added meta parameter
   }) : super(type: VocabType.word) {
+    // Pass meta to super
     LoggerService().d(
-      'WordVocab created: word=$word, readings=$readings, meanings=$meanings',
+      'WordVocab created: word=$word, readings=$readings, meanings=$meanings, '
+      'level=${meta.level}',
     );
     _wordController = TextEditingController(text: word);
     _meaningsController = TextEditingController(text: meanings.join(', '));
@@ -44,9 +47,6 @@ class WordVocab extends Vocab {
     // if Vocab has a dispose, call super.dispose();
   }
 
-  // Helper method for form fields, assuming _LabeledField is defined elsewhere (e.g. in vocab.dart)
-  // Widget _LabeledField(String label, TextEditingController controller) { ... }
-
   // Helper method for review logic
   void _submitAnswerLogic(
     TextEditingController controller,
@@ -62,7 +62,7 @@ class WordVocab extends Vocab {
       LoggerService().i(
         'WordVocab._submitAnswerLogic: Correct answer for "$word"',
       );
-      SRS.markCorrect(this);
+      SRS.markCorrect(this); // 'this' is a Vocab, SRS methods expect Vocab
       LoggerService().d(
         'WordVocab._submitAnswerLogic: SRS.markCorrect called for "$word"',
       );
@@ -77,7 +77,7 @@ class WordVocab extends Vocab {
         LoggerService().w(
           'WordVocab._submitAnswerLogic: Incorrect answer for "$word"',
         );
-        SRS.markWrong(this);
+        SRS.markWrong(this); // 'this' is a Vocab, SRS methods expect Vocab
         LoggerService().d(
           'WordVocab._submitAnswerLogic: SRS.markWrong called for "$word"',
         );
@@ -88,10 +88,6 @@ class WordVocab extends Vocab {
   @override
   List<Widget> buildFormFields(StateSetter setState) {
     LoggerService().d('WordVocab.buildFormFields called for word: $word');
-    // This assumes _LabeledField is available in the scope.
-    // If _LabeledField is defined in Vocab, WordVocab, or imported, this will work.
-    // Example: Widget _LabeledField(String label, TextEditingController controller) => Column(...);
-
     return [
       _LabeledField('Word (kanji/word)', _wordController),
       const SizedBox(height: 10),
@@ -184,6 +180,7 @@ class WordVocab extends Vocab {
     return word;
   }
 
+  // This displaySubtext does not use level or nextReview, so it's fine.
   @override
   String displaySubtext() {
     String readingSub = readings.join(', ');
@@ -194,6 +191,7 @@ class WordVocab extends Vocab {
     return '$readingSub - $meaningSub';
   }
 
+  // This displaySummary calls super.displaySummary() which is updated.
   @override
   String displaySummary() {
     String readingSummary = readings.isNotEmpty ? readings.join(', ') : 'N/A';
@@ -216,8 +214,9 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     LoggerService().i(
-      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings',
+      'WordVocab adding: word=$word, readings=$readings, meanings=$meanings, level=${meta.level}',
     );
+    // meta is already part of 'this' and will be saved by addToBox
     await super.addToBox();
   }
 
@@ -236,21 +235,22 @@ class WordVocab extends Vocab {
         .where((s) => s.isNotEmpty)
         .toList();
     LoggerService().i(
-      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings',
+      'WordVocab saving: word=$word, readings=$readings, meanings=$meanings, level=${meta.level}',
     );
+    // meta is already part of 'this' and will be saved by super.save()
     await super.save();
   }
 
   @override
   String toString() {
-    return 'WordVocab{word: $word, readings: $readings, meanings: $meanings, '
-        'type: $type, level: $level, nextReview: $nextReview}';
+    // Updated to use meta
+    return 'WordVocab{word: $word, readings: $readings, meanings: $meanings, ${meta.toString()}}';
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      super == other &&
+      super == other && // super == other now compares keys and meta
           other is WordVocab &&
           runtimeType == other.runtimeType &&
           word == other.word &&
@@ -259,7 +259,7 @@ class WordVocab extends Vocab {
 
   @override
   int get hashCode =>
-      super.hashCode ^
+      super.hashCode ^ // super.hashCode now includes meta
       word.hashCode ^
       readings.fold(0, (prev, item) => prev ^ item.hashCode) ^
       meanings.fold(0, (prev, item) => prev ^ item.hashCode);
@@ -267,36 +267,33 @@ class WordVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('WordVocab.toJson called for word: $word');
-    return {
-      'type': type.name,
-      'level': level,
-      'nextReview': nextReview.toIso8601String(),
+    final Map<String, dynamic> json = super.toJson(); // Gets 'type' and 'meta'
+    json.addAll({
+      // Add WordVocab specific fields
       'word': word,
       'readings': readings,
       'meanings': meanings,
-    };
+    });
+    return json;
   }
 
   factory WordVocab.fromJson(Map<String, dynamic> json) {
     LoggerService().d('WordVocab.fromJson called with json: $json');
-    if (json['type'] != VocabType.word.name) {
-      LoggerService().e(
-        'Invalid type for WordVocab.fromJson: ${json['type']}. Expected ${VocabType.word.name}',
-      );
-      throw ArgumentError(
-        'Invalid type for WordVocab.fromJson: ${json['type']}',
-      );
-    }
+
+    final metaJson = json['meta'] as Map<String, dynamic>?;
+    final vocabMeta = metaJson != null
+        ? VocabMeta.fromJson(metaJson)
+        : VocabMeta(); // Default if null
+
     final vocab = WordVocab(
       word: json['word'] as String,
       readings: List<String>.from(json['readings'] as List<dynamic>),
       meanings: List<String>.from(json['meanings'] as List<dynamic>),
+      meta: vocabMeta,
     );
-    vocab.level = (json['level'] as int?) ?? 0;
-    vocab.nextReview = json['nextReview'] != null
-        ? DateTime.parse(json['nextReview'] as String)
-        : DateTime.now();
-    LoggerService().i('WordVocab created from json: ${vocab.word}');
+    LoggerService().i(
+      'WordVocab created from json: ${vocab.word}, level: ${vocab.meta.level}',
+    );
     return vocab;
   }
 }

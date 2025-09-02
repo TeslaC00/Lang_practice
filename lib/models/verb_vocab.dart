@@ -2,9 +2,10 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 6)
 class VerbVocab extends Vocab {
-  @HiveField(4)
+  @HiveField(2) // Index changed from 4
   VerbForm plainVerb;
-  @HiveField(5)
+
+  @HiveField(3) // Index changed from 5
   Map<String, VerbForm> verbForms; // Key is the form name e.g., "Past Polite"
 
   late TextEditingController _plainVerbWordController;
@@ -18,11 +19,11 @@ class VerbVocab extends Vocab {
   String _readingFeedback = '';
   String _meaningFeedback = '';
 
-  // TODO: Add controllers for verbForms if they are to be made editable in this form
-  VerbVocab({required this.plainVerb, required this.verbForms})
+  VerbVocab({required this.plainVerb, required this.verbForms, super.meta})
     : super(type: VocabType.verb) {
     LoggerService().d(
-      'VerbVocab constructor: plainVerb=${plainVerb.verbWord}, verbForms count=${verbForms.length}',
+      'VerbVocab constructor: plainVerb=${plainVerb.verbWord}, verbForms count=${verbForms.length}, '
+      'meta: $meta',
     );
     _plainVerbWordController = TextEditingController(text: plainVerb.verbWord);
     _plainVerbReadingController = TextEditingController(
@@ -55,12 +56,13 @@ class VerbVocab extends Vocab {
     LoggerService().d(
       'VerbVocab _submitReviewAnswerLogic: userAnswer="$userAnswer", correctAnswer="$correctAnswer"',
     );
+    // SRS interaction will now use this.meta
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
       LoggerService().i(
         'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
       );
-      SRS.markCorrect(this);
+      SRS.markCorrect(this); // SRS needs to be aware of VocabMeta
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
@@ -70,14 +72,11 @@ class VerbVocab extends Vocab {
         LoggerService().i(
           'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswer. Marking wrong.',
         );
-        SRS.markWrong(this);
+        SRS.markWrong(this); // SRS needs to be aware of VocabMeta
       }
     }
   }
 
-  // TODO: Implement a more comprehensive form for verbForms if needed.
-  // This could involve dynamically adding/removing fields for each VerbForm in the HashMap.
-  // For now, only plainVerb is directly editable.
   @override
   List<Widget> buildFormFields(StateSetter setState) {
     LoggerService().d('VerbVocab buildFormFields entry');
@@ -95,8 +94,6 @@ class VerbVocab extends Vocab {
       ),
       const SizedBox(height: 10),
       const Text('Verb Forms:', style: TextStyle(fontWeight: FontWeight.bold)),
-      // Display existing verb forms (read-only in this basic implementation)
-      // A more complex UI would be needed to edit these directly here.
     ];
 
     verbForms.forEach((key, verbForm) {
@@ -115,11 +112,9 @@ class VerbVocab extends Vocab {
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
     LoggerService().d('VerbVocab buildReviewFields entry');
-    // For VerbVocab, let's review the plain form's reading and meaning.
-    // You could extend this to randomly pick a form or cycle through them.
     return [
       Text(
-        plainVerb.verbWord, // Show the plain verb word
+        plainVerb.verbWord,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
@@ -195,30 +190,38 @@ class VerbVocab extends Vocab {
 
   @override
   String displaySubtext() {
-    String plainVerbSubtext = plainVerb.displaySubtext();
-    if (plainVerbSubtext.isEmpty) {
-      return 'Forms: ${verbForms.length}';
-    }
-    return '${plainVerb.displaySubtext()} | Forms: ${verbForms.length}';
+    // Uses super.displaySubtext() which is already updated for VocabMeta
+    String baseSubtext = super.displaySubtext();
+    String plainVerbSubtext = plainVerb
+        .displaySubtext(); // Assuming VerbForm has displaySubtext
+    String formsCount = 'Forms: ${verbForms.length}';
+
+    List<String> parts = [];
+    if (plainVerbSubtext.isNotEmpty) parts.add(plainVerbSubtext);
+    parts.add(formsCount);
+    if (baseSubtext.isNotEmpty) parts.add(baseSubtext);
+
+    return parts.join(' | ');
   }
 
   @override
   String displaySummary() {
-    return 'Verb: ${plainVerb.displaySummary()}\nForms: ${verbForms.length}\n${super.displaySummary()}';
+    return 'Verb: ${plainVerb.displaySummary()}\nForms: ${verbForms.length}\n'
+        '${super.displaySummary()}';
   }
 
   @override
   Future<void> add() async {
     LoggerService().d(
-      'VerbVocab add: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning: "${_plainVerbMeaningController.text}"',
+      'VerbVocab add: Saving plainVerb. Word: "${_plainVerbWordController.text}", '
+      'Reading: "${_plainVerbReadingController.text}", '
+      'Meaning: "${_plainVerbMeaningController.text}"',
     );
     plainVerb.verbWord = _plainVerbWordController.text;
     plainVerb.reading = _plainVerbReadingController.text;
     plainVerb.meaning = _plainVerbMeaningController.text;
-    // TODO: Implement saving logic for verbForms if they are made editable.
-    // This might involve parsing new/updated forms from controllers.
     await super.addToBox();
-    LoggerService().i('VerbVocab add: Added to box.');
+    LoggerService().i('VerbVocab add: Added to box. Key: $key');
   }
 
   @override
@@ -229,16 +232,14 @@ class VerbVocab extends Vocab {
     plainVerb.verbWord = _plainVerbWordController.text;
     plainVerb.reading = _plainVerbReadingController.text;
     plainVerb.meaning = _plainVerbMeaningController.text;
-    // TODO: Implement saving logic for verbForms if they are made editable.
-    // This might involve parsing new/updated forms from controllers.
     await super.save();
-    LoggerService().i('VerbVocab save: Save complete.');
+    LoggerService().i('VerbVocab save: Save complete. Key: $key');
   }
 
   @override
   String toString() {
-    return 'VerbVocab{plainVerb: $plainVerb, verbForms: $verbForms, type: $type, '
-        'level: $level, nextReview: $nextReview}';
+    // super.toString() already includes meta.
+    return 'VerbVocab{plainVerb: $plainVerb, verbForms: ${verbForms.length}, ${super.toString()}}';
   }
 
   @override
@@ -256,45 +257,62 @@ class VerbVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('VerbVocab toJson entry');
-    return {
-      'type': type.name,
-      'level': level,
-      'nextReview': nextReview.toIso8601String(),
+    final jsonMap = super.toJson(); // Gets 'type' and 'meta'
+    jsonMap.addAll({
       'plainVerb': plainVerb.toJson(),
       // Assumes VerbForm has toJson()
       'verbForms': verbForms.map((key, value) => MapEntry(key, value.toJson())),
       // Assumes VerbForm has toJson()
-    };
+    });
+    return jsonMap;
   }
 
-  factory VerbVocab.fromJson(Map<String, dynamic> json) {
+  static VerbVocab fromJson(Map<String, dynamic> json) {
     LoggerService().d(
-      'VerbVocab fromJson: Attempting to create VerbVocab from JSON: $json',
+      'VerbVocab fromJson: Attempting to create VerbVocab from JSON: '
+      '${json.toString().substring(0, json.toString().length > 200 ? 200 : json.toString().length)}',
     );
-    if (json['type'] != VocabType.verb.name) {
-      LoggerService().e(
-        'VerbVocab fromJson: Invalid type for VerbVocab.fromJson. Expected ${VocabType.verb.name}, got ${json['type']}',
-      );
-      throw ArgumentError(
-        'Invalid type for VerbVocab.fromJson: ${json['type']}',
-      );
+
+    final typeStr = json['type'] as String?;
+    if (typeStr != VocabType.verb.name) {
+      final errorMsg =
+          'VerbVocab.fromJson error: Invalid type. Expected ${VocabType.verb.name}, got $typeStr';
+      LoggerService().e(errorMsg, 'Invalid type in JSON', StackTrace.current);
+      throw ArgumentError(errorMsg);
     }
 
-    final vocab = VerbVocab(
-      plainVerb: VerbForm.fromJson(json['plainVerb'] as Map<String, dynamic>),
-      verbForms:
-          (json['verbForms'] as Map<String, dynamic>?)?.map(
-            (key, value) =>
-                MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
-          ) ??
-          {},
+    final metaJson = json['meta'] as Map<String, dynamic>?;
+    final vocabMeta = metaJson != null
+        ? VocabMeta.fromJson(metaJson)
+        : VocabMeta(); // Default if null
+
+    final plainVerbData = json['plainVerb'] as Map<String, dynamic>?;
+    if (plainVerbData == null) {
+      final errorMsg =
+          'VerbVocab.fromJson error: "plainVerb" field is missing or not a map.';
+      LoggerService().e(
+        errorMsg,
+        'Missing plainVerb in JSON',
+        StackTrace.current,
+      );
+      throw ArgumentError(errorMsg);
+    }
+    final VerbForm plainVerb = VerbForm.fromJson(plainVerbData);
+
+    final verbFormsData = json['verbForms'] as Map<String, dynamic>? ?? {};
+    final Map<String, VerbForm> verbForms = verbFormsData.map(
+      (key, value) =>
+          MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>)),
     );
-    vocab.level = (json['level'] as int?) ?? 0;
-    vocab.nextReview = json['nextReview'] != null
-        ? DateTime.parse(json['nextReview'] as String)
-        : DateTime.now();
+
+    final vocab = VerbVocab(
+      plainVerb: plainVerb,
+      verbForms: verbForms,
+      meta: vocabMeta, // Pass the parsed meta object
+    );
+
     LoggerService().i(
-      'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord}',
+      'VerbVocab fromJson: Successfully created VerbVocab: ${vocab.plainVerb.verbWord} with meta: ${vocab.meta}',
     );
     return vocab;
   }

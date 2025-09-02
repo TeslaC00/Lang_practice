@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final box = Hive.box<Vocab>('vocabBox');
     setState(() {
       dueCount = box.values
-          .where((v) => v.nextReview.isBefore(DateTime.now()))
+          .where((v) => v.meta.nextReview.isBefore(DateTime.now()))
           .length;
     });
   }

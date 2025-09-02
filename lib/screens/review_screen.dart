@@ -25,7 +25,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     super.initState();
     index = 0;
     due = _box.values
-        .where((v) => v.nextReview.isBefore(DateTime.now()))
+        .where((v) => v.meta.nextReview.isBefore(DateTime.now()))
         .toList();
     if (due.isEmpty) {
       setState(() {

@@ -2,9 +2,9 @@ part of 'vocab.dart';
 
 @HiveType(typeId: 4)
 class SentenceVocab extends Vocab {
-  @HiveField(4)
+  @HiveField(2) // Changed from 4
   String sentence;
-  @HiveField(5)
+  @HiveField(3) // Changed from 5
   String answer;
 
   late TextEditingController _sentenceController;
@@ -13,9 +13,11 @@ class SentenceVocab extends Vocab {
 
   String _reviewFeedback = ''; // Feedback for the review screen
 
-  SentenceVocab({required this.sentence, required this.answer})
+  SentenceVocab({required this.sentence, required this.answer, super.meta})
     : super(type: VocabType.sentence) {
-    LoggerService().d('SentenceVocab created: "$sentence" - "$answer"');
+    LoggerService().d(
+      'SentenceVocab created: "$sentence" - "$answer", Level: ${meta.level}',
+    );
     _sentenceController = TextEditingController(text: sentence);
     _answerController = TextEditingController(text: answer);
     _reviewAnswerController = TextEditingController();
@@ -30,7 +32,7 @@ class SentenceVocab extends Vocab {
     // if Vocab has a dispose, call super.dispose();
   }
 
-  // Helper method for review logic (adapted from WordVocab)
+  // Helper method for review logic
   void _submitReviewAnswerLogic(
     TextEditingController controller,
     String correctAnswer,
@@ -43,7 +45,7 @@ class SentenceVocab extends Vocab {
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
       LoggerService().i('SentenceVocab review: Correct for "$sentence"');
-      SRS.markCorrect(this);
+      SRS.markCorrect(this); // 'this' refers to SentenceVocab instance
     } else {
       if (userAnswer.isEmpty) {
         feedbackSetter("Please enter an answer.");
@@ -53,7 +55,7 @@ class SentenceVocab extends Vocab {
         LoggerService().w(
           'SentenceVocab review: Incorrect for "$sentence". User: "$userAnswer", Correct: "$correctAnswer"',
         );
-        SRS.markWrong(this);
+        SRS.markWrong(this); // 'this' refers to SentenceVocab instance
       }
     }
   }
@@ -76,10 +78,9 @@ class SentenceVocab extends Vocab {
   @override
   List<Widget> buildReviewFields(StateSetter setState) {
     LoggerService().d('SentenceVocab.buildReviewFields called for "$sentence"');
-    // Show the sentence and ask for answer
     return [
       Text(
-        sentence, // Display the sentence (question)
+        sentence,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
@@ -93,7 +94,7 @@ class SentenceVocab extends Vocab {
         ),
         onSubmitted: (_) => _submitReviewAnswerLogic(
           _reviewAnswerController,
-          answer, // The correct answer
+          answer,
           (f) => setState(() => _reviewFeedback = f),
         ),
       ),
@@ -122,6 +123,8 @@ class SentenceVocab extends Vocab {
     return sentence.length > 30 ? '${sentence.substring(0, 30)}...' : sentence;
   }
 
+  // displaySubtext remains specific to SentenceVocab showing the answer.
+  // The generic level/review info is available via Vocab.displaySubtext if needed elsewhere.
   @override
   String displaySubtext() {
     return answer;
@@ -129,6 +132,7 @@ class SentenceVocab extends Vocab {
 
   @override
   String displaySummary() {
+    // super.displaySummary() will now correctly include VocabMeta details
     return 'Sentence: "$sentence"\nAnswer: "$answer"\n${super.displaySummary()}';
   }
 
@@ -139,7 +143,8 @@ class SentenceVocab extends Vocab {
     );
     sentence = _sentenceController.text;
     answer = _answerController.text;
-    await super.addToBox();
+    await super
+        .addToBox(); // This will save the Vocab object including its meta field
     LoggerService().i('SentenceVocab added: "$sentence"');
   }
 
@@ -150,20 +155,22 @@ class SentenceVocab extends Vocab {
     );
     sentence = _sentenceController.text;
     answer = _answerController.text;
-    await super.save();
+    await super
+        .save(); // This will save the Vocab object including its meta field
     LoggerService().i('SentenceVocab saved: "$sentence"');
   }
 
   @override
   String toString() {
+    // Accessing meta for level and nextReview
     return 'SentenceVocab{sentence: $sentence, answer: $answer, type: $type, '
-        'level: $level, nextReview: $nextReview}';
+        'meta: ${meta.toString()}}'; // Using meta.toString() for details
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      super == other &&
+      super == other && // super == other checks for key equality if HiveObject
           other is SentenceVocab &&
           runtimeType == other.runtimeType &&
           sentence == other.sentence &&
@@ -175,16 +182,12 @@ class SentenceVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('SentenceVocab.toJson called for "$sentence"');
-    return {
-      'type': type.name,
-      'level': level,
-      'nextReview': nextReview.toIso8601String(),
-      'sentence': sentence,
-      'answer': answer,
-    };
+    final json = super.toJson(); // Gets type and meta
+    json.addAll({'sentence': sentence, 'answer': answer});
+    return json;
   }
 
-  factory SentenceVocab.fromJson(Map<String, dynamic> json) {
+  static SentenceVocab fromJson(Map<String, dynamic> json) {
     LoggerService().d('SentenceVocab.fromJson called with data: $json');
     if (json['type'] != VocabType.sentence.name) {
       LoggerService().e(
@@ -194,15 +197,23 @@ class SentenceVocab extends Vocab {
         'Invalid type for SentenceVocab.fromJson: ${json['type']}',
       );
     }
+
+    // Extract and parse VocabMeta
+    final metaJson = json['meta'] as Map<String, dynamic>?;
+    final vocabMeta = metaJson != null
+        ? VocabMeta.fromJson(metaJson)
+        : VocabMeta(); // Or handle error if meta is strictly required
+
     final vocab = SentenceVocab(
       sentence: json['sentence'] as String,
       answer: json['answer'] as String,
+      meta: vocabMeta, // Pass parsed VocabMeta
     );
-    vocab.level = (json['level'] as int?) ?? 0;
-    vocab.nextReview = json['nextReview'] != null
-        ? DateTime.parse(json['nextReview'] as String)
-        : DateTime.now();
-    LoggerService().i('SentenceVocab created from JSON: "${vocab.sentence}"');
+    // Level and nextReview are now part of meta, no need to set them directly.
+
+    LoggerService().i(
+      'SentenceVocab created from JSON: "${vocab.sentence}", Level: ${vocab.meta.level}',
+    );
     return vocab;
   }
 }

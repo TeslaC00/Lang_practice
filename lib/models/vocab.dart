@@ -6,11 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:lang_practice/models/vocab_meta.dart';
 
 import '../services/logger_service.dart';
 import '../services/srs.dart';
 
 part 'vocab.g.dart';
+
+// Note: If vocab_meta.g.dart is needed, it will be generated into vocab.g.dart
+// as VocabMeta is defined in this file.
 
 part 'word_vocab.dart';
 
@@ -35,21 +39,21 @@ enum VocabType {
 }
 
 abstract class Vocab extends HiveObject {
-  @HiveField(1)
+  @HiveField(0)
   VocabType type;
-  @HiveField(2)
-  int level; // 0-10
-  @HiveField(3)
-  DateTime nextReview = DateTime.now(); // due time
 
-  Vocab({required this.type, this.level = 0}) {
+  @HiveField(1)
+  VocabMeta meta;
+
+  Vocab({required this.type, VocabMeta? meta}) : meta = meta ?? VocabMeta() {
     LoggerService().d(
-      'Vocab constructor called for type: $type, level: $level, key: ${key?.toString() ?? "new"}',
+      'Vocab constructor called for type: $type, level: ${this.meta.level}, key: ${key?.toString() ?? "new"}',
     );
   }
 
   static Vocab create(VocabType type) {
     LoggerService().i('Vocab.create called for type: $type');
+    // VocabMeta will be initialized with defaults by the Vocab constructor
     switch (type) {
       case VocabType.word:
         return WordVocab(word: '', meanings: [], readings: []);
@@ -75,6 +79,8 @@ abstract class Vocab extends HiveObject {
 
   Future<void> addToBox() async {
     final box = Hive.box<Vocab>('vocabBox');
+    // Ensure meta is also saved if it's a separate HiveObject,
+    // but here it's part of Vocab, so Hive handles it.
     await box.add(this);
   }
 
@@ -84,29 +90,34 @@ abstract class Vocab extends HiveObject {
 
   String displaySubtext() {
     final DateFormat formatter = DateFormat.yMd();
-    return 'Level: $level, Next Review: ${formatter.format(nextReview)}';
+    return 'Level: ${meta.level}, Next Review: ${formatter.format(meta.nextReview)}';
   }
 
   String displaySummary() {
     final DateFormat formatter = DateFormat.yMd();
-    return 'Type: ${type.name}, Level: $level, Next Review: ${formatter.format(nextReview)}';
+    return 'Type: ${type.name}, Level: ${meta.level}, Next Review: ${formatter.format(meta.nextReview)}';
   }
 
   @override
   String toString() {
-    return 'Vocab{type: $type, level: $level, nextReview: $nextReview, key: $key}';
+    return 'Vocab{type: $type, meta: $meta, key: $key}';
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Vocab && runtimeType == other.runtimeType && key == other.key; // Assuming key is primary identifier
+      other is Vocab && runtimeType == other.runtimeType && key == other.key;
 
   @override
   int get hashCode => key?.hashCode ?? super.hashCode;
 
-  Map<String, dynamic> toJson();
+  // Subclasses will call super.toJson() and add their specific fields.
+  Map<String, dynamic> toJson() {
+    return {'type': type.name, 'meta': meta.toJson()};
+  }
 
+  // fromJson is static and handled by subclasses which will create VocabMeta
+  // and pass it to their constructor (which passes to super Vocab constructor)
   static Vocab fromJson(Map<String, dynamic> json) {
     final jsonString = json.toString();
     LoggerService().d(
@@ -114,43 +125,33 @@ abstract class Vocab extends HiveObject {
     );
     final typeStr = json['type'] as String?;
     if (typeStr == null) {
-      LoggerService().e(
-        'Vocab.fromJson error: type field is missing or null in JSON.',
-        'Missing type in JSON',
-        StackTrace.current,
-      );
-      throw ArgumentError(
-        'Type field is missing or null in JSON for Vocab.fromJson',
-      );
+      final errorMsg =
+          'Vocab.fromJson error: type field is missing or null in JSON.';
+      LoggerService().e(errorMsg, 'Missing type in JSON', StackTrace.current);
+      throw ArgumentError(errorMsg);
     }
 
     final type = VocabType.values.firstWhere(
       (t) => t.name == typeStr,
       orElse: () {
-        LoggerService().e(
-          'Vocab.fromJson error: Unknown vocab type: $typeStr',
-          'Unknown vocab type',
-          StackTrace.current,
-        );
-        throw ArgumentError('Unknown vocab type: $typeStr');
+        final errorMsg = 'Vocab.fromJson error: Unknown vocab type: $typeStr';
+        LoggerService().e(errorMsg, 'Unknown vocab type', StackTrace.current);
+        throw ArgumentError(errorMsg);
       },
     );
 
-    LoggerService().i('Vocab.fromJson: creating $type from JSON.');
+    // The actual Vocab object creation is delegated to subclass fromJson methods.
+    // They will handle the 'meta' field.
+    LoggerService().i('Vocab.fromJson: routing to $type.fromJson.');
     switch (type) {
       case VocabType.word:
-        LoggerService().d('Vocab.fromJson: routing to WordVocab.fromJson');
         return WordVocab.fromJson(json);
       case VocabType.time:
-        LoggerService().d('Vocab.fromJson: routing to TimeVocab.fromJson');
         return TimeVocab.fromJson(json);
       case VocabType.sentence:
-        LoggerService().d('Vocab.fromJson: routing to SentenceVocab.fromJson');
         return SentenceVocab.fromJson(json);
       case VocabType.verb:
-        LoggerService().d('Vocab.fromJson: routing to VerbVocab.fromJson');
         return VerbVocab.fromJson(json);
-      // No default needed as orElse in firstWhere handles unknown types
     }
   }
 }

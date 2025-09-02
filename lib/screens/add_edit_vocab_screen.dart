@@ -2,8 +2,8 @@
 // ----------------------
 
 import 'package:flutter/material.dart';
-import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/services/logger_service.dart';
+import '../models/vocab.dart';
 
 class AddEditVocabScreen extends StatefulWidget {
   final Vocab? existing;

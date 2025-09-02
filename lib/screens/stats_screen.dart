@@ -13,7 +13,7 @@ class StatsScreen extends StatelessWidget {
     final all = box.values.toList();
     final levelCounts = List<int>.generate(6, (_) => 0);
     for (final v in all) {
-      levelCounts[v.level.clamp(0, 5)]++;
+      levelCounts[v.meta.level.clamp(0, 5)]++;
     }
     return Scaffold(
       appBar: AppBar(title: const Text('Stats')),
