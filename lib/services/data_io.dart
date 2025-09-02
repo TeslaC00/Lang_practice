@@ -11,11 +11,11 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> exportData(BuildContext context) async {
   LoggerService().d("exportData entry"); // Added log
-  final box = await Hive.openBox<Vocab>('vocabBox');
-  final vocabs = box.values.toList();
-
-  // Convert to JSON
   try {
+    final box = Hive.box<Vocab>('vocabBox');
+    final vocabs = box.values.toList();
+
+    // Convert to JSON
     final jsonList = vocabs.map((vocab) => vocab.toJson()).toList();
     final jsonString = jsonEncode(jsonList);
 
@@ -51,24 +51,53 @@ Future<void> exportData(BuildContext context) async {
   }
 }
 
+Future<List<Vocab>> _parseVocabs(String jsonString) async {
+  final List<dynamic> jsonList = jsonDecode(jsonString);
+  return jsonList
+      .map((json) => Vocab.fromJson(json as Map<String, dynamic>))
+      .toList();
+}
+
+void _showProgressSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      duration: const Duration(minutes: 5), // long enough for import/export
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message),
+          const SizedBox(height: 10),
+          const LinearProgressIndicator(),
+        ],
+      ),
+    ),
+  );
+}
+
+void _hideProgressSnackBar(BuildContext context) {
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+}
+
 Future<void> importData(BuildContext context) async {
   LoggerService().d("importData entry"); // Added log
   // Pick File from Device
-  final result = await FilePicker.platform.pickFiles(
-    allowMultiple: false,
-    type: FileType.custom,
-    allowedExtensions: ['json'],
-    withData: true,
-  );
-
-  // User canceled the picker
-  if (result == null) {
-    LoggerService().i("Import cancelled by user."); // Added log
-    return;
-  }
-
-  // Convert to JSON
   try {
+    _showProgressSnackBar(context, "Importing data...");
+
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+      withData: true,
+    );
+
+    // User canceled the picker
+    if (result == null) {
+      LoggerService().i("Import cancelled by user."); // Added log
+      return;
+    }
+
+    // Convert to JSON
     LoggerService().i(
       "Attempting to import data from ${result.files.single.path}",
     ); // Added log
@@ -77,28 +106,23 @@ Future<void> importData(BuildContext context) async {
         ? utf8.decode(bytes)
         : await File(result.files.single.path!).readAsString();
 
-    final List<dynamic> jsonList = jsonDecode(jsonString);
-    final List<Vocab> vocabs = jsonList
-        .map((json) => Vocab.fromJson(json as Map<String, dynamic>))
-        .toList();
+    final vocabs = await compute(_parseVocabs, jsonString);
 
     // Save to Database
-    final box = await Hive.openBox<Vocab>('vocabBox');
-    int newVocabsCount = 0;
+    final box = Hive.box<Vocab>('vocabBox');
+    final existing = box.values.toSet();
 
-    for (final vocab in vocabs) {
-      final exists = box.values.any((v) => v == vocab);
-      if (!exists) {
-        box.add(vocab);
-        newVocabsCount++;
-      }
-    }
+    final newVocabs = vocabs.where((v) => !existing.contains(v)).toList();
+
+    if (newVocabs.isNotEmpty) box.addAll(newVocabs);
     // Clear cache to get review of new data
-    final cache = Hive.box<dynamic>('cacheBox');
-    cache.clear();
+    await Hive.box<dynamic>('cacheBox').clear();
+
+    if (context.mounted) _hideProgressSnackBar(context);
 
     LoggerService().i(
-      "Data imported successfully. Added $newVocabsCount new vocabs.",
+      "Data imported successfully. Added ${newVocabs.length} new vocabs, From ${vocabs.length} total. "
+      "Ignore duplicate vocabs ${vocabs.length - newVocabs.length}.",
     ); // Added log
 
     if (context.mounted) {
