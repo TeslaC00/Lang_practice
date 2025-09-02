@@ -110,7 +110,8 @@ class WordVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Meanings/English (comma separated)', _meaningsController),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController), // Added notes field
+      _LabeledField('Notes', _notesController, maxLines: 3),
+      // Added notes field
     ];
   }
 
@@ -208,7 +209,7 @@ class WordVocab extends Vocab {
     List<String> parts = [];
     if (readingSub.isNotEmpty) parts.add(readingSub);
     if (meaningSub.isNotEmpty) parts.add(meaningSub);
-    if (notes.isNotEmpty) parts.add('Notes: $notes');
+    if (notes.isNotEmpty) parts.add('\nNotes: $notes');
 
     return parts.join(' | ');
   }

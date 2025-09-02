@@ -101,7 +101,7 @@ class VerbVocab extends Vocab {
         _plainVerbMeaningController,
       ),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController),
+      _LabeledField('Notes', _notesController, maxLines: 3),
       const SizedBox(height: 10),
       const Text('Verb Forms:', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 10),
@@ -214,7 +214,7 @@ class VerbVocab extends Vocab {
     List<String> parts = [];
     if (plainVerbSubtext.isNotEmpty) parts.add(plainVerbSubtext);
     parts.add(formsCount);
-    if (notes.isNotEmpty) parts.add('Notes: $notes');
+    if (notes.isNotEmpty) parts.add('\nNotes: $notes');
 
     return parts.join(' | ');
   }

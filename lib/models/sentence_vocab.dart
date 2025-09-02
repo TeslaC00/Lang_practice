@@ -81,8 +81,7 @@ class SentenceVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Answer/Translation', _answerController, maxLines: 3),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 2),
-      // Added notes field
+      _LabeledField('Notes', _notesController, maxLines: 3),
     ];
   }
 

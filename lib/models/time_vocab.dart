@@ -113,7 +113,7 @@ class TimeVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
       const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController), // Added notes field
+      _LabeledField('Notes', _notesController, maxLines: 3), // Added notes field
     ];
   }
 
