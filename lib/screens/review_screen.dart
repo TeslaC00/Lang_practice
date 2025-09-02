@@ -2,8 +2,8 @@
 // -------------------------------
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import '../models/vocab.dart';
+import '../services/srs.dart';
 
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({super.key});
@@ -13,7 +13,6 @@ class ReviewScreen extends StatefulWidget {
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
-  final _box = Hive.box<Vocab>('vocabBox');
   late List<Vocab> due;
   int index = 0;
   Vocab? _current;
@@ -21,12 +20,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
   final _rng = Random();
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     index = 0;
-    due = _box.values
-        .where((v) => v.meta.nextReview.isBefore(DateTime.now()))
-        .toList();
+    due = await SRS.getDues(maxReviewPerDay: 40);
     if (due.isEmpty) {
       setState(() {
         _current = null;
