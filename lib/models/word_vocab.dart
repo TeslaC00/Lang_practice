@@ -14,6 +14,7 @@ class WordVocab extends Vocab {
   late TextEditingController _readingsController;
   late TextEditingController _readingAnswerController;
   late TextEditingController _meaningAnswerController;
+  late TextEditingController _notesController; // Added notes controller
 
   // Notes controller is no longer needed here if notes are handled by a general field in Vocab
   // or AddEditScreen directly uses vocab.notes.
@@ -37,6 +38,7 @@ class WordVocab extends Vocab {
     _readingsController = TextEditingController(text: readings.join(', '));
     _readingAnswerController = TextEditingController();
     _meaningAnswerController = TextEditingController();
+    _notesController = TextEditingController(text: notes); // Initialize notes controller
   }
 
   @override
@@ -47,6 +49,7 @@ class WordVocab extends Vocab {
     _readingsController.dispose();
     _readingAnswerController.dispose();
     _meaningAnswerController.dispose();
+    _notesController.dispose(); // Dispose notes controller
     // super.dispose(); // If Vocab base class had a dispose method.
   }
 
@@ -105,10 +108,7 @@ class WordVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Meanings/English (comma separated)', _meaningsController),
       const SizedBox(height: 10),
-      // If you want a notes field specific to WordVocab or controlled here:
-      // _LabeledField('Notes', TextEditingController(text: notes)..addListener(() {
-      //   setState(() => notes = (TextEditingController(text: notes)).text);
-      // })),
+      _LabeledField('Notes', _notesController), // Added notes field
     ];
   }
 
@@ -125,7 +125,7 @@ class WordVocab extends Vocab {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
-            "Notes: $notes",
+            "Notes: $notes", // Notes are already displayed here
             style: TextStyle(fontStyle: FontStyle.italic),
           ),
         ),
@@ -233,6 +233,7 @@ class WordVocab extends Vocab {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
+    notes = _notesController.text; // Update notes from controller
     LoggerService().i(
       'WordVocab adding: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
     );
@@ -254,6 +255,7 @@ class WordVocab extends Vocab {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
+    notes = _notesController.text; // Update notes from controller
     LoggerService().i(
       'WordVocab saving: word=$word, readings=$readings, meanings=$meanings, notes=$notes, level=${meta.level}',
     );

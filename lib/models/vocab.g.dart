@@ -66,27 +66,30 @@ class WordVocabAdapter extends TypeAdapter<WordVocab> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return WordVocab(
-      word: fields[2] as String,
-      readings: (fields[3] as List).cast<String>(),
-      meanings: (fields[4] as List).cast<String>(),
+      word: fields[3] as String,
+      readings: (fields[4] as List).cast<String>(),
+      meanings: (fields[5] as List).cast<String>(),
       meta: fields[1] as VocabMeta?,
+      notes: fields[2] as String,
     )..type = fields[0] as VocabType;
   }
 
   @override
   void write(BinaryWriter writer, WordVocab obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(2)
-      ..write(obj.word)
+      ..writeByte(6)
       ..writeByte(3)
-      ..write(obj.readings)
+      ..write(obj.word)
       ..writeByte(4)
+      ..write(obj.readings)
+      ..writeByte(5)
       ..write(obj.meanings)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
-      ..write(obj.meta);
+      ..write(obj.meta)
+      ..writeByte(2)
+      ..write(obj.notes);
   }
 
   @override
@@ -111,27 +114,30 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TimeVocab(
-      timeWord: fields[2] as String,
-      reading: fields[3] as String,
-      timeString: fields[4] as String,
+      timeWord: fields[3] as String,
+      reading: fields[4] as String,
+      timeString: fields[5] as String,
       meta: fields[1] as VocabMeta?,
+      notes: fields[2] as String,
     )..type = fields[0] as VocabType;
   }
 
   @override
   void write(BinaryWriter writer, TimeVocab obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(2)
-      ..write(obj.timeWord)
+      ..writeByte(6)
       ..writeByte(3)
-      ..write(obj.reading)
+      ..write(obj.timeWord)
       ..writeByte(4)
+      ..write(obj.reading)
+      ..writeByte(5)
       ..write(obj.timeString)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
-      ..write(obj.meta);
+      ..write(obj.meta)
+      ..writeByte(2)
+      ..write(obj.notes);
   }
 
   @override
@@ -156,24 +162,27 @@ class SentenceVocabAdapter extends TypeAdapter<SentenceVocab> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SentenceVocab(
-      sentence: fields[2] as String,
-      answer: fields[3] as String,
+      sentence: fields[3] as String,
+      answer: fields[4] as String,
       meta: fields[1] as VocabMeta?,
+      notes: fields[2] as String,
     )..type = fields[0] as VocabType;
   }
 
   @override
   void write(BinaryWriter writer, SentenceVocab obj) {
     writer
-      ..writeByte(4)
-      ..writeByte(2)
-      ..write(obj.sentence)
+      ..writeByte(5)
       ..writeByte(3)
+      ..write(obj.sentence)
+      ..writeByte(4)
       ..write(obj.answer)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
-      ..write(obj.meta);
+      ..write(obj.meta)
+      ..writeByte(2)
+      ..write(obj.notes);
   }
 
   @override
@@ -200,7 +209,7 @@ class VerbFormAdapter extends TypeAdapter<VerbForm> {
     return VerbForm(
       verbWord: fields[0] as String,
       reading: fields[1] as String,
-      meaning: fields[2] as String,
+      meanings: fields[2] as String,
     );
   }
 
@@ -213,7 +222,7 @@ class VerbFormAdapter extends TypeAdapter<VerbForm> {
       ..writeByte(1)
       ..write(obj.reading)
       ..writeByte(2)
-      ..write(obj.meaning);
+      ..write(obj.meanings);
   }
 
   @override
@@ -238,24 +247,27 @@ class VerbVocabAdapter extends TypeAdapter<VerbVocab> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return VerbVocab(
-      plainVerb: fields[2] as VerbForm,
-      verbForms: (fields[3] as Map).cast<String, VerbForm>(),
+      plainVerb: fields[3] as VerbForm,
+      verbForms: (fields[4] as Map).cast<String, VerbForm>(),
       meta: fields[1] as VocabMeta?,
+      notes: fields[2] as String,
     )..type = fields[0] as VocabType;
   }
 
   @override
   void write(BinaryWriter writer, VerbVocab obj) {
     writer
-      ..writeByte(4)
-      ..writeByte(2)
-      ..write(obj.plainVerb)
+      ..writeByte(5)
       ..writeByte(3)
+      ..write(obj.plainVerb)
+      ..writeByte(4)
       ..write(obj.verbForms)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
-      ..write(obj.meta);
+      ..write(obj.meta)
+      ..writeByte(2)
+      ..write(obj.notes);
   }
 
   @override

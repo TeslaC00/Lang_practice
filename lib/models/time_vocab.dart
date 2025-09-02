@@ -12,6 +12,7 @@ class TimeVocab extends Vocab {
   late TextEditingController _timeWordController;
   late TextEditingController _readingController;
   late TextEditingController _timeValueController; // For form input
+  late TextEditingController _notesController; // Added for notes
 
   late TextEditingController _readingAnswerController;
   late TextEditingController _timeValueAnswerController; // For review input
@@ -32,6 +33,7 @@ class TimeVocab extends Vocab {
     _timeWordController = TextEditingController(text: timeWord);
     _readingController = TextEditingController(text: reading);
     _timeValueController = TextEditingController(text: timeString);
+    _notesController = TextEditingController(text: notes); // Initialize notes controller
     _readingAnswerController = TextEditingController();
     _timeValueAnswerController = TextEditingController();
   }
@@ -42,6 +44,7 @@ class TimeVocab extends Vocab {
     _timeWordController.dispose();
     _readingController.dispose();
     _timeValueController.dispose();
+    _notesController.dispose(); // Dispose notes controller
     _readingAnswerController.dispose();
     _timeValueAnswerController.dispose();
     // if Vocab has a dispose, call super.dispose();
@@ -108,6 +111,7 @@ class TimeVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
       const SizedBox(height: 10),
+      _LabeledField('Notes', _notesController), // Added notes field
     ];
   }
 
@@ -213,11 +217,12 @@ class TimeVocab extends Vocab {
   @override
   Future<void> add() async {
     LoggerService().d(
-      'Adding TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}',
+      'Adding TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
     );
     timeWord = _timeWordController.text;
     reading = _readingController.text;
     timeString = _timeValueController.text;
+    notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
     await super.addToBox();
     LoggerService().i('TimeVocab "$timeWord" added.');
@@ -226,11 +231,12 @@ class TimeVocab extends Vocab {
   @override
   Future<void> save() async {
     LoggerService().d(
-      'Saving TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}',
+      'Saving TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
     );
     timeWord = _timeWordController.text;
     reading = _readingController.text;
     timeString = _timeValueController.text;
+    notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
     await super.save();
     LoggerService().i('TimeVocab "$timeWord" saved.');
@@ -262,7 +268,7 @@ class TimeVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('Converting TimeVocab to JSON: $timeWord');
-    final json = super.toJson(); // Gets 'type' and 'meta'
+    final json = super.toJson(); // Gets 'type', 'meta', and 'notes'
     json.addAll({
       'timeWord': timeWord,
       'reading': reading,

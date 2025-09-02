@@ -10,6 +10,7 @@ class SentenceVocab extends Vocab {
   late TextEditingController _sentenceController;
   late TextEditingController _answerController;
   late TextEditingController _reviewAnswerController;
+  late TextEditingController _notesController; // Added notes controller
 
   String _reviewFeedback = ''; // Feedback for the review screen
 
@@ -25,6 +26,7 @@ class SentenceVocab extends Vocab {
     _sentenceController = TextEditingController(text: sentence);
     _answerController = TextEditingController(text: answer);
     _reviewAnswerController = TextEditingController();
+    _notesController = TextEditingController(text: notes); // Initialize notes controller
   }
 
   @override
@@ -33,6 +35,7 @@ class SentenceVocab extends Vocab {
     _sentenceController.dispose();
     _answerController.dispose();
     _reviewAnswerController.dispose();
+    _notesController.dispose(); // Dispose notes controller
     // if Vocab has a dispose, call super.dispose();
   }
 
@@ -76,6 +79,7 @@ class SentenceVocab extends Vocab {
       const SizedBox(height: 10),
       _LabeledField('Answer/Translation', _answerController, maxLines: 3),
       const SizedBox(height: 10),
+      _LabeledField('Notes', _notesController, maxLines: 2), // Added notes field
     ];
   }
 
@@ -92,7 +96,7 @@ class SentenceVocab extends Vocab {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
-            "Notes: $notes",
+            "Notes: $notes", // Notes are already displayed here
             style: TextStyle(fontStyle: FontStyle.italic),
           ),
         ),
@@ -155,6 +159,7 @@ class SentenceVocab extends Vocab {
     );
     sentence = _sentenceController.text;
     answer = _answerController.text;
+    notes = _notesController.text; // Update notes from controller
     await super
         .addToBox(); // This will save the Vocab object including its meta field
     LoggerService().i('SentenceVocab added: "$sentence"');
@@ -167,6 +172,7 @@ class SentenceVocab extends Vocab {
     );
     sentence = _sentenceController.text;
     answer = _answerController.text;
+    notes = _notesController.text; // Update notes from controller
     await super
         .save(); // This will save the Vocab object including its meta field
     LoggerService().i('SentenceVocab saved: "$sentence"');
@@ -176,7 +182,7 @@ class SentenceVocab extends Vocab {
   String toString() {
     // Accessing meta for level and nextReview
     return 'SentenceVocab{sentence: $sentence, answer: $answer, type: $type, '
-        'meta: ${meta.toString()}}'; // Using meta.toString() for details
+        'meta: ${meta.toString()}, notes: $notes}'; // Using meta.toString() for details
   }
 
   @override
@@ -194,7 +200,7 @@ class SentenceVocab extends Vocab {
   @override
   Map<String, dynamic> toJson() {
     LoggerService().d('SentenceVocab.toJson called for "$sentence"');
-    final json = super.toJson(); // Gets type and meta
+    final json = super.toJson(); // Gets type, notes and meta
     json.addAll({'sentence': sentence, 'answer': answer});
     return json;
   }

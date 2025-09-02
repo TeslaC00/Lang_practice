@@ -11,6 +11,7 @@ class VerbVocab extends Vocab {
   late TextEditingController _plainVerbWordController;
   late TextEditingController _plainVerbReadingController;
   late TextEditingController _plainVerbMeaningController;
+  late TextEditingController _notesController; // Added
 
   // Review screen controllers
   late TextEditingController _readingAnswerController;
@@ -36,6 +37,7 @@ class VerbVocab extends Vocab {
     _plainVerbMeaningController = TextEditingController(
       text: plainVerb.meaning,
     );
+    _notesController = TextEditingController(text: notes); // Added
     _readingAnswerController = TextEditingController();
     _meaningAnswerController = TextEditingController();
   }
@@ -46,6 +48,7 @@ class VerbVocab extends Vocab {
     _plainVerbWordController.dispose();
     _plainVerbReadingController.dispose();
     _plainVerbMeaningController.dispose();
+    _notesController.dispose(); // Added
     _readingAnswerController.dispose();
     _meaningAnswerController.dispose();
     // if Vocab has a dispose, call super.dispose();
@@ -108,6 +111,10 @@ class VerbVocab extends Vocab {
         ),
       );
     });
+    formWidgets.addAll([ // Added
+      const SizedBox(height: 10),
+      _LabeledField('Notes', _notesController),
+    ]);
     formWidgets.add(const SizedBox(height: 10));
 
     return formWidgets;
@@ -233,6 +240,7 @@ class VerbVocab extends Vocab {
     plainVerb.verbWord = _plainVerbWordController.text;
     plainVerb.reading = _plainVerbReadingController.text;
     plainVerb.meaning = _plainVerbMeaningController.text;
+    notes = _notesController.text; // Added
     await super.addToBox();
     LoggerService().i('VerbVocab add: Added to box. Key: $key');
   }
@@ -245,6 +253,7 @@ class VerbVocab extends Vocab {
     plainVerb.verbWord = _plainVerbWordController.text;
     plainVerb.reading = _plainVerbReadingController.text;
     plainVerb.meaning = _plainVerbMeaningController.text;
+    notes = _notesController.text; // Added
     await super.save();
     LoggerService().i('VerbVocab save: Save complete. Key: $key');
   }
