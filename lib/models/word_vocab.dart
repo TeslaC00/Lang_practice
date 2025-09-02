@@ -38,7 +38,9 @@ class WordVocab extends Vocab {
     _readingsController = TextEditingController(text: readings.join(', '));
     _readingAnswerController = TextEditingController();
     _meaningAnswerController = TextEditingController();
-    _notesController = TextEditingController(text: notes); // Initialize notes controller
+    _notesController = TextEditingController(
+      text: notes,
+    ); // Initialize notes controller
   }
 
   @override
@@ -240,7 +242,6 @@ class WordVocab extends Vocab {
     await super.addToBox();
   }
 
-  // TODO: Add notes controller in all subclasses for adding and editing
   @override
   Future<void> save() async {
     LoggerService().d('WordVocab.save called for current word: $word');

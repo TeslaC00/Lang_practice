@@ -32,7 +32,7 @@ class VerbVocab extends Vocab {
     );
     _plainVerbWordController = TextEditingController(text: plainVerb.verbWord);
     _plainVerbReadingController = TextEditingController(
-      text: plainVerb.reading,
+      text: plainVerb.readings.join(', '),
     );
     _plainVerbMeaningController = TextEditingController(
       text: plainVerb.meanings.join(', '),
@@ -55,15 +55,17 @@ class VerbVocab extends Vocab {
 
   void _submitReviewAnswerLogic(
     TextEditingController controller,
-    String correctAnswer,
+    List<String> correctAnswers,
     Function(String) feedbackSetter,
   ) {
     final userAnswer = controller.text.trim().toLowerCase();
     LoggerService().d(
-      'VerbVocab _submitReviewAnswerLogic: userAnswer="$userAnswer", correctAnswer="$correctAnswer"',
+      'VerbVocab _submitReviewAnswerLogic: userAnswer="$userAnswer", correctAnswer="${correctAnswers.join(', ')}"',
     );
     // SRS interaction will now use this.meta
-    if (correctAnswer.trim().toLowerCase() == userAnswer) {
+    if (correctAnswers
+        .map((ans) => ans.trim().toLowerCase())
+        .contains(userAnswer)) {
       feedbackSetter("Correct!");
       LoggerService().i(
         'VerbVocab _submitReviewAnswerLogic: Correct answer. Marking correct.',
@@ -74,9 +76,9 @@ class VerbVocab extends Vocab {
         feedbackSetter("Please enter an answer.");
         LoggerService().w('VerbVocab _submitReviewAnswerLogic: Empty answer.');
       } else {
-        feedbackSetter("Incorrect. Correct: $correctAnswer");
+        feedbackSetter("Incorrect. Correct: $correctAnswers");
         LoggerService().i(
-          'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswer. Marking wrong.',
+          'VerbVocab _submitReviewAnswerLogic: Incorrect answer. Correct: $correctAnswers. Marking wrong.',
         );
         SRS.markWrong(this);
       }
@@ -146,7 +148,7 @@ class VerbVocab extends Vocab {
         ),
         onSubmitted: (_) => _submitReviewAnswerLogic(
           _readingAnswerController,
-          plainVerb.reading,
+          plainVerb.readings,
           (f) => setState(() => _readingFeedback = f),
         ),
       ),
@@ -154,7 +156,7 @@ class VerbVocab extends Vocab {
       FilledButton(
         onPressed: () => _submitReviewAnswerLogic(
           _readingAnswerController,
-          plainVerb.reading,
+          plainVerb.readings,
           (f) => setState(() => _readingFeedback = f),
         ),
         child: const Text("Check Reading"),
@@ -177,7 +179,7 @@ class VerbVocab extends Vocab {
         ),
         onSubmitted: (_) => _submitReviewAnswerLogic(
           _meaningAnswerController,
-          plainVerb.meaning,
+          plainVerb.meanings,
           (f) => setState(() => _meaningFeedback = f),
         ),
       ),
@@ -185,7 +187,7 @@ class VerbVocab extends Vocab {
       FilledButton(
         onPressed: () => _submitReviewAnswerLogic(
           _meaningAnswerController,
-          plainVerb.meaning,
+          plainVerb.meanings,
           (f) => setState(() => _meaningFeedback = f),
         ),
         child: const Text("Check Meaning"),
@@ -235,16 +237,21 @@ class VerbVocab extends Vocab {
       'Meaning(s) from input: "${_plainVerbMeaningController.text}"',
     );
     plainVerb.verbWord = _plainVerbWordController.text.trim();
-    plainVerb.reading = _plainVerbReadingController.text.trim();
-    // Split comma-separated string from TextField into List<String>
+    plainVerb.readings = _plainVerbReadingController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     plainVerb.meanings = _plainVerbMeaningController.text
         .split(',')
         .map((e) => e.trim())
-        .where((e) => e.isNotEmpty) // Remove empty strings if any
+        .where((e) => e.isNotEmpty)
         .toList();
     notes = _notesController.text.trim();
     await super.addToBox();
-    LoggerService().i('VerbVocab add: Added to box. Key: $key. Meanings: ${plainVerb.meanings}');
+    LoggerService().i(
+      'VerbVocab add: Added to box. Key: $key. Meanings: ${plainVerb.meanings}',
+    );
   }
 
   @override
@@ -253,16 +260,21 @@ class VerbVocab extends Vocab {
       'VerbVocab save: Saving plainVerb. Word: "${_plainVerbWordController.text}", Reading: "${_plainVerbReadingController.text}", Meaning(s) from input: "${_plainVerbMeaningController.text}"',
     );
     plainVerb.verbWord = _plainVerbWordController.text.trim();
-    plainVerb.reading = _plainVerbReadingController.text.trim();
-    // Split comma-separated string from TextField into List<String>
+    plainVerb.readings = _plainVerbReadingController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     plainVerb.meanings = _plainVerbMeaningController.text
         .split(',')
         .map((e) => e.trim())
-        .where((e) => e.isNotEmpty) // Remove empty strings if any
+        .where((e) => e.isNotEmpty)
         .toList();
     notes = _notesController.text.trim();
     await super.save();
-    LoggerService().i('VerbVocab save: Save complete. Key: $key. Meanings: ${plainVerb.meanings}');
+    LoggerService().i(
+      'VerbVocab save: Save complete. Key: $key. Meanings: ${plainVerb.meanings}',
+    );
   }
 
   @override

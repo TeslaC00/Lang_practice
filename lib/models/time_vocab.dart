@@ -5,7 +5,7 @@ class TimeVocab extends Vocab {
   @HiveField(3)
   String timeWord;
   @HiveField(4)
-  String reading;
+  List<String> readings;
   @HiveField(5)
   String timeString; // Stores a fixed time for HH:MM part.
 
@@ -22,18 +22,20 @@ class TimeVocab extends Vocab {
 
   TimeVocab({
     required this.timeWord,
-    required this.reading,
+    required this.readings,
     required this.timeString,
     super.meta,
     super.notes,
   }) : super(type: VocabType.time) {
     LoggerService().d(
-      'TimeVocab created: $timeWord, reading: $reading, time: $timeString, meta: $meta',
+      'TimeVocab created: $timeWord, reading: ${readings.join(', ')}, time: $timeString, meta: $meta',
     );
     _timeWordController = TextEditingController(text: timeWord);
-    _readingController = TextEditingController(text: reading);
+    _readingController = TextEditingController(text: readings.join(', '));
     _timeValueController = TextEditingController(text: timeString);
-    _notesController = TextEditingController(text: notes); // Initialize notes controller
+    _notesController = TextEditingController(
+      text: notes,
+    ); // Initialize notes controller
     _readingAnswerController = TextEditingController();
     _timeValueAnswerController = TextEditingController();
   }
@@ -142,15 +144,17 @@ class TimeVocab extends Vocab {
         ),
         onSubmitted: (_) => _submitAnswerLogic(
           _readingAnswerController,
-          [reading], // reading is a single string
+          readings, // reading is a single string
           (f) => setState(() => _readingFeedback = f),
         ),
       ),
       const SizedBox(height: 5),
       FilledButton(
-        onPressed: () => _submitAnswerLogic(_readingAnswerController, [
-          reading,
-        ], (f) => setState(() => _readingFeedback = f)),
+        onPressed: () => _submitAnswerLogic(
+          _readingAnswerController,
+          readings,
+          (f) => setState(() => _readingFeedback = f),
+        ),
         child: const Text("Check Reading"),
       ),
       const SizedBox(height: 5),
@@ -205,13 +209,13 @@ class TimeVocab extends Vocab {
   String displaySubtext() {
     // This is specific to TimeVocab and doesn't use level/nextReview directly
     // It calls super.displaySubtext() in displaySummary()
-    return '$reading at $timeString '
+    return '$readings at $timeString '
         '${notes.isNotEmpty ? '\nNotes: $notes' : ''}';
   }
 
   @override
   String displaySummary() {
-    return 'Time: $timeWord ($reading) at $timeString\n${super.displaySummary()}';
+    return 'Time: $timeWord ($readings) at $timeString\n${super.displaySummary()}';
   }
 
   @override
@@ -220,7 +224,11 @@ class TimeVocab extends Vocab {
       'Adding TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
     );
     timeWord = _timeWordController.text;
-    reading = _readingController.text;
+    readings = _readingController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     timeString = _timeValueController.text;
     notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
@@ -234,7 +242,11 @@ class TimeVocab extends Vocab {
       'Saving TimeVocab. Current: $timeWord, New word: ${_timeWordController.text}, New reading: ${_readingController.text}, New time: ${_timeValueController.text}, New notes: ${_notesController.text}',
     );
     timeWord = _timeWordController.text;
-    reading = _readingController.text;
+    readings = _readingController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     timeString = _timeValueController.text;
     notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
@@ -245,7 +257,7 @@ class TimeVocab extends Vocab {
   @override
   String toString() {
     // Relies on Vocab.toString() for meta details
-    return 'TimeVocab{timeWord: $timeWord, reading: $reading, timeValue: $timeString, ${super.toString()}}';
+    return 'TimeVocab{timeWord: $timeWord, reading: $readings, timeValue: $timeString, ${super.toString()}}';
   }
 
   @override
@@ -255,14 +267,14 @@ class TimeVocab extends Vocab {
           other is TimeVocab &&
           runtimeType == other.runtimeType &&
           timeWord == other.timeWord &&
-          reading == other.reading &&
+          readings == other.readings &&
           timeString == other.timeString;
 
   @override
   int get hashCode =>
       super.hashCode ^
       timeWord.hashCode ^
-      reading.hashCode ^
+      readings.hashCode ^
       timeString.hashCode;
 
   @override
@@ -271,7 +283,7 @@ class TimeVocab extends Vocab {
     final json = super.toJson(); // Gets 'type', 'meta', and 'notes'
     json.addAll({
       'timeWord': timeWord,
-      'reading': reading,
+      'reading': readings,
       'timeString': timeString,
     });
     return json;
@@ -298,7 +310,7 @@ class TimeVocab extends Vocab {
 
     final vocab = TimeVocab(
       timeWord: json['timeWord'] as String,
-      reading: json['reading'] as String,
+      readings: json['reading'] as List<String>,
       timeString: json['timeString'] as String,
       meta: vocabMeta,
       notes: notes,

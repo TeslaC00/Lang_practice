@@ -115,7 +115,7 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
     };
     return TimeVocab(
       timeWord: fields[3] as String,
-      reading: fields[4] as String,
+      readings: (fields[4] as List).cast<String>(),
       timeString: fields[5] as String,
       meta: fields[1] as VocabMeta?,
       notes: fields[2] as String,
@@ -129,7 +129,7 @@ class TimeVocabAdapter extends TypeAdapter<TimeVocab> {
       ..writeByte(3)
       ..write(obj.timeWord)
       ..writeByte(4)
-      ..write(obj.reading)
+      ..write(obj.readings)
       ..writeByte(5)
       ..write(obj.timeString)
       ..writeByte(0)
@@ -208,8 +208,8 @@ class VerbFormAdapter extends TypeAdapter<VerbForm> {
     };
     return VerbForm(
       verbWord: fields[0] as String,
-      reading: fields[1] as String,
-      meanings: fields[2] as String,
+      readings: (fields[1] as List).cast<String>(),
+      meanings: (fields[2] as List).cast<String>(),
     );
   }
 
@@ -220,7 +220,7 @@ class VerbFormAdapter extends TypeAdapter<VerbForm> {
       ..writeByte(0)
       ..write(obj.verbWord)
       ..writeByte(1)
-      ..write(obj.reading)
+      ..write(obj.readings)
       ..writeByte(2)
       ..write(obj.meanings);
   }

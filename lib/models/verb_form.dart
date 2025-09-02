@@ -5,17 +5,17 @@ class VerbForm extends HiveObject {
   @HiveField(0)
   String verbWord;
   @HiveField(1)
-  String reading;
+  List<String> readings;
   @HiveField(2)
-  String meaning;
+  List<String> meanings; // Changed to List<String>
 
   VerbForm({
     required this.verbWord,
-    required this.reading,
-    required this.meaning,
+    required this.readings,
+    required this.meanings, // Changed to List<String>
   }) {
     LoggerService().d(
-      'VerbForm created: verbWord=$verbWord, reading=$reading, meaning=$meaning',
+      'VerbForm created: verbWord=$verbWord, reading=${readings.join(', ')}, meaning=${meanings.join(", ")}',
     );
   }
 
@@ -29,14 +29,16 @@ class VerbForm extends HiveObject {
   String displaySubtext() {
     LoggerService().d('VerbForm.displaySubtext called');
     String result;
-    if (reading.isEmpty && meaning.isEmpty) {
+    final meaningText = meanings.join(', ');
+    final readingText = readings.join(', ');
+    if (readings.isEmpty && meanings.isEmpty) {
       result = '';
-    } else if (reading.isEmpty) {
-      result = meaning;
-    } else if (meaning.isEmpty) {
-      result = reading;
+    } else if (readings.isEmpty) {
+      result = meaningText;
+    } else if (meanings.isEmpty) {
+      result = readingText;
     } else {
-      result = '$reading - $meaning';
+      result = '$readingText - $meaningText';
     }
     LoggerService().d('VerbForm.displaySubtext returning: $result');
     return result;
@@ -44,7 +46,8 @@ class VerbForm extends HiveObject {
 
   String displaySummary() {
     LoggerService().d('VerbForm.displaySummary called');
-    final summary = '$verbWord ($reading) - $meaning';
+    final meaningText = meanings.join(', ');
+    final summary = '$verbWord ($readings) - $meaningText';
     LoggerService().d('VerbForm.displaySummary returning: $summary');
     return summary;
   }
@@ -52,7 +55,11 @@ class VerbForm extends HiveObject {
   // ToJson method
   Map<String, dynamic> toJson() {
     LoggerService().d('VerbForm.toJson called for verbWord=$verbWord');
-    return {'verbWord': verbWord, 'reading': reading, 'meaning': meaning};
+    return {
+      'verbWord': verbWord,
+      'reading': readings,
+      'meaning': meanings,
+    }; // meaning is already List<String>
   }
 
   // FromJson factory constructor
@@ -60,8 +67,8 @@ class VerbForm extends HiveObject {
     LoggerService().d('VerbForm.fromJson called with json: $json');
     final instance = VerbForm(
       verbWord: json['verbWord'] as String,
-      reading: json['reading'] as String,
-      meaning: json['meaning'] as String,
+      readings: json['reading'] as List<String>,
+      meanings: json['meaning'] as List<String>,
     );
     LoggerService().d(
       'VerbForm.fromJson created instance: ${instance.verbWord}',
@@ -71,7 +78,7 @@ class VerbForm extends HiveObject {
 
   @override
   String toString() {
-    return 'VerbForm{verbWord: $verbWord, reading: $reading, meaning: $meaning}';
+    return 'VerbForm{verbWord: $verbWord, reading: ${readings.join(', ')}, meaning: ${meanings.join(', ')}}';
   }
 
   @override
@@ -80,9 +87,12 @@ class VerbForm extends HiveObject {
       other is VerbForm &&
           runtimeType == other.runtimeType &&
           verbWord == other.verbWord &&
-          reading == other.reading &&
-          meaning == other.meaning;
+          readings == other.readings &&
+          listEquals(meanings, other.meanings);
 
   @override
-  int get hashCode => verbWord.hashCode ^ reading.hashCode ^ meaning.hashCode;
+  int get hashCode =>
+      verbWord.hashCode ^
+      readings.hashCode ^
+      meanings.fold(0, (prev, item) => prev ^ item.hashCode);
 }
