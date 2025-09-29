@@ -1,4 +1,4 @@
-# lang_practice
+# Lang Practice
 
 ![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
