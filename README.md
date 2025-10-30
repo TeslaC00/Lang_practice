@@ -1,6 +1,6 @@
 # lang_practice
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 
 Lang Practice is a Flutter mobile app designed to help you practice and review Japanese vocabulary
@@ -17,6 +17,7 @@ systematically.
 - **Due Count:** Quickly see how many items need revision today.
 - **Statistics:** Track your learning progress over time.
 - **Import / Export Data:** Backup or restore your vocabulary database.
+- **Ignores Duplicates:** Ignores duplicated vocabulary items automatically when importing
 - **Send Logs:** Share app logs for debugging purposes.
 
 ---
