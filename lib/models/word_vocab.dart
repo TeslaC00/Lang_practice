@@ -1,15 +1,12 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 2)
 class WordVocab extends Vocab {
-  @HiveField(3)
   String word;
-  @HiveField(4)
   List<String> readings;
-  @HiveField(5)
   List<String> meanings;
 
   WordVocab({
+    super.id,
     required this.word,
     required this.readings,
     required this.meanings,
@@ -52,15 +49,15 @@ class WordVocab extends Vocab {
     return 'Word: $word (Reading: $readingSummary, Meaning: $meaningSummary)\n${super.displaySummary()}';
   }
 
-  @override
-  Future<void> add() async {
-    await super.addToBox();
-  }
-
-  @override
-  Future<void> save() async {
-    await super.save();
-  }
+  // @override
+  // Future<void> add() async {
+  //   // await super.addToBox();
+  // }
+  //
+  // @override
+  // Future<void> save() async {
+  //   // await super.save();
+  // }
 
   @override
   String toString() {

@@ -4,7 +4,6 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:lang_practice/models/vocab_meta.dart';
 
@@ -25,33 +24,18 @@ part 'verb_form.dart';
 
 part 'verb_vocab.dart';
 
-part 'vocab.g.dart';
-
 part 'word_vocab.dart';
 
-@HiveType(typeId: 1)
-enum VocabType {
-  @HiveField(0)
-  word,
-  @HiveField(1)
-  verb,
-  @HiveField(2)
-  sentence,
-  @HiveField(3)
-  time,
-}
+enum VocabType { word, verb, sentence, time }
 
-abstract class Vocab extends HiveObject {
-  @HiveField(0)
+abstract class Vocab {
+  int? id;
+
   VocabType type;
-
-  @HiveField(1)
   VocabMeta meta;
-
-  @HiveField(2)
   String notes;
 
-  Vocab({required this.type, VocabMeta? meta, this.notes = ''})
+  Vocab({this.id, required this.type, VocabMeta? meta, this.notes = ''})
     : meta = meta ?? VocabMeta();
 
   static Vocab create(VocabType type) {
@@ -76,12 +60,12 @@ abstract class Vocab extends HiveObject {
 
   Widget buildReviewWidget();
 
-  void add();
+  // void add();
 
-  Future<void> addToBox() async {
-    final box = Hive.box<Vocab>('vocabBox');
-    await box.add(this);
-  }
+  // Future<void> addToBox() async {
+  //   final box = Hive.box<Vocab>('vocabBox');
+  //   await box.add(this);
+  // }
 
   String displayTitle() {
     return type.name;
@@ -99,16 +83,16 @@ abstract class Vocab extends HiveObject {
 
   @override
   String toString() {
-    return 'Vocab{type: $type, notes: $notes, meta: $meta, key: $key}';
+    return 'Vocab{type: $type, notes: $notes, meta: $meta, id: $id}';
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Vocab && runtimeType == other.runtimeType && key == other.key;
+      other is Vocab && runtimeType == other.runtimeType && id == other.id;
 
   @override
-  int get hashCode => key?.hashCode ?? super.hashCode;
+  int get hashCode => id?.hashCode ?? super.hashCode;
 
   Map<String, dynamic> toJson() {
     return {'type': type.name, 'notes': notes, 'meta': meta.toJson()};

@@ -1,12 +1,8 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 5)
-class VerbForm extends HiveObject {
-  @HiveField(0)
+class VerbForm {
   String verbWord;
-  @HiveField(1)
   List<String> readings;
-  @HiveField(2)
   List<String> meanings; // Changed to List<String>
 
   VerbForm({

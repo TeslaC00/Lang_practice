@@ -1,15 +1,12 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 3)
 class TimeVocab extends Vocab {
-  @HiveField(3)
   String timeWord;
-  @HiveField(4)
   List<String> readings;
-  @HiveField(5)
   String timeString; // Stores a fixed time for HH:MM part.
 
   TimeVocab({
+    super.id,
     required this.timeWord,
     required this.readings,
     required this.timeString,
@@ -45,15 +42,16 @@ class TimeVocab extends Vocab {
     return 'Time: $timeWord ($readings) at $timeString\n${super.displaySummary()}';
   }
 
-  @override
-  Future<void> add() async {
-    await super.addToBox();
-  }
-
-  @override
-  Future<void> save() async {
-    await super.save();
-  }
+  // TODO: remove these functions
+  // @override
+  // Future<void> add() async {
+  //   // await super.addToBox();
+  // }
+  //
+  // @override
+  // Future<void> save() async {
+  //   // await super.save();
+  // }
 
   @override
   String toString() {

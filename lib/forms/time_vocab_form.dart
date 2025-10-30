@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../helper_ui_comps.dart';
 import '../models/vocab.dart';
+import '../services/database.dart';
+import 'package:drift/drift.dart' as drift;
+
+import '../vocab_mapper.dart';
 
 class TimeVocabForm extends StatefulWidget {
   final TimeVocab vocab;
@@ -43,7 +47,9 @@ class _TimeVocabFormState extends State<TimeVocabForm> {
     super.dispose();
   }
 
-  void _saveForm() {
+  void _saveForm() async {
+    final db = AppDatabase.instance;
+
     widget.vocab.timeWord = _timeWordController.text;
     widget.vocab.readings = _readingController.text
         .split(',')
@@ -54,14 +60,27 @@ class _TimeVocabFormState extends State<TimeVocabForm> {
     widget.vocab.notes = _notesController.text; // Get notes from controller
     // meta is already part of the object, managed by Vocab class
 
-    if (widget.isNew) {
-      widget.vocab.add();
-    } else {
-      widget.vocab.save();
-    }
+    final companion = VocabMapper.vocabToCompanion(widget.vocab).copyWith(
+      id: widget.isNew ? drift.Value.absent() : drift.Value(widget.vocab.id!),
+    );
 
-    //   Maybe pop the screen
-    Navigator.of(context).pop();
+    try {
+      if (widget.isNew) {
+        await db.into(db.vocabs).insert(companion);
+      } else {
+        await db.update(db.vocabs).replace(companion);
+      }
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+    } on Exception catch (e) {
+      // Handle error show a SnackBar
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error saving: $e")));
+    }
   }
 
   @override

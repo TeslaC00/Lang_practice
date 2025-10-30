@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,50 +7,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lang_practice/models/vocab.dart';
+import 'package:lang_practice/models/vocab_meta.dart';
+import 'package:lang_practice/services/database.dart';
+import 'package:lang_practice/vocab_mapper.dart';
 import 'package:lang_practice/services/logger_service.dart'; // Added import
 import 'package:path_provider/path_provider.dart';
 
-Future<void> exportData(BuildContext context) async {
-  LoggerService().d("exportData entry"); // Added log
-  try {
-    final box = Hive.box<Vocab>('vocabBox');
-    final vocabs = box.values.toList();
-
-    // Convert to JSON
-    final jsonList = vocabs.map((vocab) => vocab.toJson()).toList();
-    final jsonString = jsonEncode(jsonList);
-
-    // Convert JSON String to Bytes
-    final bytes = Uint8List.fromList(utf8.encode(jsonString));
-    final dir = await getApplicationDocumentsDirectory();
-
-    // Pick File to Save
-    final filePath = await FilePicker.platform.saveFile(
-      dialogTitle: "Please select an output file:",
-      fileName: 'backup.json',
-      allowedExtensions: ['json'],
-      initialDirectory: dir.path,
-      bytes: bytes,
-    );
-
-    if (filePath == null) {
-      LoggerService().i("Export cancelled by user."); // Added log
-      return;
-    }
-
-    LoggerService().i("Data exported successfully to $filePath"); // Added log
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data exported successfully!")),
-      );
-    }
-  } catch (e, s) {
-    // Added stackTrace
-    LoggerService().e("Export failed", e, s); // Modified log
-    if (kDebugMode) print("Export failed: $e");
-  }
-}
+import 'package:drift/drift.dart' as drift;
 
 Future<List<Vocab>> _parseVocabs(String jsonString) async {
   final List<dynamic> jsonList = jsonDecode(jsonString);
@@ -109,20 +73,32 @@ Future<void> importData(BuildContext context) async {
     final vocabs = await compute(_parseVocabs, jsonString);
 
     // Save to Database
-    final box = Hive.box<Vocab>('vocabBox');
-    final existing = box.values.toSet();
+    final db = AppDatabase.instance;
+    final companions = <VocabsCompanion>[];
 
-    final newVocabs = vocabs.where((v) => !existing.contains(v)).toList();
+    for (final vocab in vocabs) {
+      // We need to convert our vocab model to VocabCompanion
+      companions.add(VocabMapper.vocabToCompanion(vocab));
+    }
 
-    if (newVocabs.isNotEmpty) box.addAll(newVocabs);
+    await db.batch((batch) {
+      batch.insertAll(
+        db.vocabs,
+        companions,
+        mode: drift.InsertMode.insertOrIgnore,
+      );
+    });
+
     // Clear cache to get review of new data
-    await Hive.box<dynamic>('cacheBox').clear();
+    // await Hive.box<dynamic>('cacheBox').clear();
+    await db.delete(db.dailyDueCache).go();
+    await db.delete(db.keyValueStore).go();
 
     if (context.mounted) _hideProgressSnackBar(context);
 
     LoggerService().i(
-      "Data imported successfully. Added ${newVocabs.length} new vocabs, From ${vocabs.length} total. "
-      "Ignore duplicate vocabs ${vocabs.length - newVocabs.length}.",
+      "Data imported successfully. Added ${companions.length} new vocabs, From ${vocabs.length} total. "
+      "Ignore duplicate vocabs ${vocabs.length - companions.length}.",
     ); // Added log
 
     if (context.mounted) {
@@ -134,5 +110,53 @@ Future<void> importData(BuildContext context) async {
     // Added stackTrace
     LoggerService().e("Import failed", e, s); // Modified log
     if (kDebugMode) print("Import failed: $e");
+  }
+}
+
+Future<void> exportData(BuildContext context) async {
+  LoggerService().d("exportData entry"); // Added log
+  try {
+    final db = AppDatabase.instance;
+    final allEntries = await db.select(db.vocabs).get();
+
+    // convert from Drift VocabEntry to Vocab
+    final vocabs = <Vocab>[];
+    for (final entry in allEntries) {
+      vocabs.add(VocabMapper.entryToVocab(entry));
+    }
+
+    // Convert to JSON
+    final jsonList = vocabs.map((vocab) => vocab.toJson()).toList();
+    final jsonString = jsonEncode(jsonList);
+
+    // Convert JSON String to Bytes
+    final bytes = Uint8List.fromList(utf8.encode(jsonString));
+    final dir = await getApplicationDocumentsDirectory();
+
+    // Pick File to Save
+    final filePath = await FilePicker.platform.saveFile(
+      dialogTitle: "Please select an output file:",
+      fileName: 'backup.json',
+      allowedExtensions: ['json'],
+      initialDirectory: dir.path,
+      bytes: bytes,
+    );
+
+    if (filePath == null) {
+      LoggerService().i("Export cancelled by user."); // Added log
+      return;
+    }
+
+    LoggerService().i("Data exported successfully to $filePath"); // Added log
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Data exported successfully!")),
+      );
+    }
+  } catch (e, s) {
+    // Added stackTrace
+    LoggerService().e("Export failed", e, s); // Modified log
+    if (kDebugMode) print("Export failed: $e");
   }
 }

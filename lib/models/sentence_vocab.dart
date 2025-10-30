@@ -1,13 +1,11 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 4)
 class SentenceVocab extends Vocab {
-  @HiveField(3)
   String sentence;
-  @HiveField(4)
   String answer;
 
   SentenceVocab({
+    super.id,
     required this.sentence,
     required this.answer,
     super.meta,
@@ -42,17 +40,17 @@ class SentenceVocab extends Vocab {
     return 'Sentence: "$sentence"\nAnswer: "$answer"\n${super.displaySummary()}';
   }
 
-  @override
-  Future<void> add() async {
-    // This will save the Vocab object including its meta field
-    await super.addToBox();
-  }
-
-  @override
-  Future<void> save() async {
-    // This will save the Vocab object including its meta field
-    await super.save();
-  }
+  // @override
+  // Future<void> add() async {
+  //   // This will save the Vocab object including its meta field
+  //   // await super.addToBox();
+  // }
+  //
+  // @override
+  // Future<void> save() async {
+  //   // This will save the Vocab object including its meta field
+  //   // await super.save();
+  // }
 
   @override
   String toString() {

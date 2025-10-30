@@ -1,14 +1,11 @@
 part of 'vocab.dart';
 
-@HiveType(typeId: 6)
 class VerbVocab extends Vocab {
-  @HiveField(3)
   VerbForm plainVerb;
-
-  @HiveField(4)
   Map<String, VerbForm> verbForms; // Key is the form name e.g., "Past Polite"
 
   VerbVocab({
+    super.id,
     required this.plainVerb,
     required this.verbForms,
     super.meta,
@@ -49,15 +46,15 @@ class VerbVocab extends Vocab {
         '${super.displaySummary()}';
   }
 
-  @override
-  Future<void> add() async {
-    await super.addToBox();
-  }
-
-  @override
-  Future<void> save() async {
-    await super.save();
-  }
+  // @override
+  // Future<void> add() async {
+  //   // await super.addToBox();
+  // }
+  //
+  // @override
+  // Future<void> save() async {
+  //   // await super.save();
+  // }
 
   @override
   String toString() {
