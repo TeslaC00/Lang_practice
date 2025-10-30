@@ -1,12 +1,11 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:lang_practice/models/vocab.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart'; // This file will be generated
 
@@ -63,7 +62,6 @@ class Vocabs extends Table {
 
   TextColumn get verbForms => text().map(const VerbMapConverter()).nullable()();
 
-  // TODO: add unique key
   @override
   List<Set<Column>> get uniqueKeys => [
     {type, primaryText},

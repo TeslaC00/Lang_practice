@@ -2,8 +2,6 @@
 // ------------------------------
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import '../models/vocab.dart';
 import '../services/database.dart';
 
 class LevelStat {
@@ -19,12 +17,6 @@ class StatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final db = AppDatabase.instance; // Get DB instance
-    // final box = Hive.box<Vocab>('vocabBox');
-    // final all = box.values.toList();
-    // final levelCounts = List<int>.generate(6, (_) => 0);
-    // for (final v in all) {
-    //   levelCounts[v.meta.level.clamp(0, 5)]++;
-    // }
     final levelCol = db.vocabs.level;
     final countCol = db.vocabs.id.count();
     final query = db.selectOnly(db.vocabs)

@@ -46,16 +46,6 @@ class VerbVocab extends Vocab {
         '${super.displaySummary()}';
   }
 
-  // @override
-  // Future<void> add() async {
-  //   // await super.addToBox();
-  // }
-  //
-  // @override
-  // Future<void> save() async {
-  //   // await super.save();
-  // }
-
   @override
   String toString() {
     // super.toString() already includes meta.

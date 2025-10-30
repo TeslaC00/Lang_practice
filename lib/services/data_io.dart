@@ -1,19 +1,15 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:lang_practice/models/vocab.dart';
-import 'package:lang_practice/models/vocab_meta.dart';
 import 'package:lang_practice/services/database.dart';
-import 'package:lang_practice/vocab_mapper.dart';
 import 'package:lang_practice/services/logger_service.dart'; // Added import
+import 'package:lang_practice/vocab_mapper.dart';
 import 'package:path_provider/path_provider.dart';
-
-import 'package:drift/drift.dart' as drift;
 
 Future<List<Vocab>> _parseVocabs(String jsonString) async {
   final List<dynamic> jsonList = jsonDecode(jsonString);
@@ -108,7 +104,6 @@ Future<void> importData(BuildContext context) async {
     final itemsIgnored = totalInFile - itemsAdded;
 
     // Clear cache to get review of new data
-    // await Hive.box<dynamic>('cacheBox').clear();
     await db.delete(db.dailyDueCache).go();
     await db.delete(db.keyValueStore).go();
 

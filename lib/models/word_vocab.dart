@@ -49,16 +49,6 @@ class WordVocab extends Vocab {
     return 'Word: $word (Reading: $readingSummary, Meaning: $meaningSummary)\n${super.displaySummary()}';
   }
 
-  // @override
-  // Future<void> add() async {
-  //   // await super.addToBox();
-  // }
-  //
-  // @override
-  // Future<void> save() async {
-  //   // await super.save();
-  // }
-
   @override
   String toString() {
     return 'WordVocab{word: $word, readings: $readings, meanings: $meanings, notes: $notes, ${meta.toString()}}';

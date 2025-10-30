@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../models/vocab.dart';
@@ -31,10 +30,10 @@ class _SentenceVocabReviewState extends State<SentenceVocabReview> {
   }
 
   void _submitAnswerLogic(
-      TextEditingController controller,
-      String correctAnswer,
-      Function(String) feedbackSetter,
-      ) {
+    TextEditingController controller,
+    String correctAnswer,
+    Function(String) feedbackSetter,
+  ) {
     final userAnswer = controller.text.trim().toLowerCase();
     if (correctAnswer.trim().toLowerCase() == userAnswer) {
       feedbackSetter("Correct!");
@@ -78,7 +77,7 @@ class _SentenceVocabReviewState extends State<SentenceVocabReview> {
           onSubmitted: (_) => _submitAnswerLogic(
             _reviewAnswerController,
             widget.vocab.answer,
-                (f) => setState(() => _reviewFeedback = f),
+            (f) => setState(() => _reviewFeedback = f),
           ),
         ),
         const SizedBox(height: 5),
@@ -86,7 +85,7 @@ class _SentenceVocabReviewState extends State<SentenceVocabReview> {
           onPressed: () => _submitAnswerLogic(
             _reviewAnswerController,
             widget.vocab.answer,
-                (f) => setState(() => _reviewFeedback = f),
+            (f) => setState(() => _reviewFeedback = f),
           ),
           child: const Text("Check Answer"),
         ),

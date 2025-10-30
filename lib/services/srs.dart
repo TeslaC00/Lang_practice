@@ -2,7 +2,6 @@
 // ----------------------
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/cupertino.dart';
-import 'package:hive/hive.dart';
 import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/vocab_mapper.dart';
 
@@ -71,16 +70,9 @@ class SRS {
         (await countQuery.getSingle()).read(db.dailyDueCache.vocabId.count()) ??
         0;
     dueCount.value = count;
-    // await v.save();
-
-    // Remove from today's cache
-    // final cache = Hive.box<dynamic>('cacheBox');
-    // await cache.delete(v.id);
-    // dueCount.value = cache.values.whereType<int>().length;
   }
 
   static Future<void> markWrong(Vocab v) async {
-    // v.dispose();
     // Business logic
     v.meta.wrongTimesCounter++;
     v.meta.totalWrongTimes++;
@@ -100,7 +92,6 @@ class SRS {
     v.meta.nextReview = DateTime.now().add(
       const Duration(hours: 6),
     ); // quick comeback after a miss
-    // await v.save();
 
     // 2. Save to Drift DB
     final db = AppDatabase.instance;
@@ -121,22 +112,12 @@ class SRS {
         (await countQuery.getSingle()).read(db.dailyDueCache.vocabId.count()) ??
         0;
     dueCount.value = count;
-
-    // Remove from today's cache
-    // final cache = Hive.box<dynamic>('cacheBox');
-    // await cache.delete(v.id);
-    // dueCount.value = cache.values.whereType<int>().length;
   }
 
-  static Future<void> getDailyDues({int maxReviewPerDay = 5}) async {
+  static Future<void> getDailyDues({int maxReviewPerDay = 30}) async {
     final now = DateTime.now();
-    // final box = Hive.box<Vocab>('vocabBox');
-    // final cache = Hive.box<dynamic>('cacheBox');
     final db = AppDatabase.instance; // Get DB instance
     final todayKey = "${now.year}-${now.month}-${now.day}";
-
-    // final lastDate = cache.get('lastDate') as String?;
-    // final todayKey = "${now.year}-${now.month}-${now.day}";
 
     // Check lastDate from our new KeyValueStore
     final dateEntry = await (db.select(
@@ -145,7 +126,6 @@ class SRS {
     final lastDate = dateEntry?.value;
 
     if (lastDate == todayKey) {
-      // dueCount.value = cache.values.whereType<int>().length;
       // Already initialized, just get count
       final countQuery = db.selectOnly(db.dailyDueCache)
         ..addColumns([db.dailyDueCache.vocabId.count()]);
@@ -159,7 +139,6 @@ class SRS {
     }
 
     // Regenerate dues
-    // await cache.clear();
     await db.delete(db.dailyDueCache).go(); // Clear old cache
 
     // This is the magic: Get all due items with ONE query
@@ -219,24 +198,10 @@ class SRS {
         );
 
     dueCount.value = result.length;
-
-    // for (final v in result) {
-    //   await cache.put(v.id as int, v.id as int);
-    // }
-    // await cache.put('lastDate', todayKey);
-    //
-    // dueCount.value = result.length;
   }
 
-  static Future<List<Vocab>> getDues({int maxReviewPerDay = 5}) async {
+  static Future<List<Vocab>> getDues({int maxReviewPerDay = 30}) async {
     await getDailyDues(maxReviewPerDay: maxReviewPerDay);
-
-    // final box = Hive.box<Vocab>('vocabBox');
-    // final cache = Hive.box<dynamic>('cacheBox');
-    //
-    // final ids = cache.values.whereType<int>().toList();
-    // return ids.map((id) => box.get(id)!).toList();
-
     final db = AppDatabase.instance;
 
     // Get all IDs from the cache

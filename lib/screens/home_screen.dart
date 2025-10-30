@@ -18,8 +18,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // int dueCount = 0;
-
   void _onDueCountChanged() {
     if (mounted) {
       setState(() {});
@@ -28,10 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _updateDues() async {
     await SRS.getDailyDues();
-    // if (!mounted) return;
-    // setState(() {
-    //   dueCount = SRS.dueCount.value;
-    // });
   }
 
   @override

@@ -1,8 +1,6 @@
 // lib/screens/vocab_list_screen.dart
 // ----------------------------------
 import 'package:flutter/material.dart';
-
-// import 'package:hive_flutter/hive_flutter.dart';
 import '../models/vocab.dart';
 import '../services/database.dart';
 import '../services/logger_service.dart';
@@ -51,38 +49,15 @@ class _VocabListScreenState extends State<VocabListScreen>
           ],
         ),
       ),
-      body:
-          // ValueListenableBuilder(
-          //   valueListenable: box.listenable(),
-          //   builder: (context, Box<Vocab> b, _) {
-          //     if (b.values.isEmpty) {
-          //       return const Center(child: Text('No entries yet'));
-          //     }
-          //
-          //     final words = b.values
-          //         .where((vocab) => vocab.type == VocabType.word)
-          //         .toList();
-          //     final times = b.values
-          //         .where((vocab) => vocab.type == VocabType.time)
-          //         .toList();
-          //     final sentences = b.values
-          //         .where((vocab) => vocab.type == VocabType.sentence)
-          //         .toList();
-          //     final verbs = b.values
-          //         .where((vocab) => vocab.type == VocabType.verb)
-          //         .toList();
-          TabBarView(
-            controller: _tabController,
-            children: [
-              _buildCategoryStream(VocabType.word),
-              _buildCategoryStream(VocabType.time),
-              _buildCategoryStream(VocabType.sentence),
-              _buildCategoryStream(VocabType.verb),
-              // _buildCategoryList(times),
-              // _buildCategoryList(sentences),
-              // _buildCategoryList(verbs),
-            ],
-          ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildCategoryStream(VocabType.word),
+          _buildCategoryStream(VocabType.time),
+          _buildCategoryStream(VocabType.sentence),
+          _buildCategoryStream(VocabType.verb),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
@@ -194,8 +169,6 @@ class _VocabListScreenState extends State<VocabListScreen>
       await (db.delete(
         db.vocabs,
       )..where((tbl) => tbl.id.equals(vocab.id!))).go();
-      // TODO: remove this
-      // vocab.delete();
 
       if (!mounted) return;
 

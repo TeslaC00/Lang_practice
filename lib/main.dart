@@ -3,35 +3,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:lang_practice/models/vocab.dart';
 import 'package:lang_practice/screens/home_screen.dart';
 import 'package:lang_practice/services/logger_service.dart'; // Import logger service
-import 'package:path_provider/path_provider.dart';
-
-import 'models/vocab_meta.dart';
 
 Future<void> main() async {
-  // TODO: vocab list and stats screen not working
-  // TODO: after doing the review the due count is still 1 and doing review still gives review after doing
   // TODO: after attempting one question you can type correct answer then hit next
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
       await LoggerService().init(); // Initialize logger service
-
-      // final dir = await getApplicationDocumentsDirectory();
-      // await Hive.initFlutter(dir.path);
-      // Hive.registerAdapter(VocabMetaAdapter());
-      // Hive.registerAdapter(VocabTypeAdapter());
-      // Hive.registerAdapter(WordVocabAdapter());
-      // Hive.registerAdapter(TimeVocabAdapter());
-      // Hive.registerAdapter(SentenceVocabAdapter());
-      // Hive.registerAdapter(VerbFormAdapter());
-      // Hive.registerAdapter(VerbVocabAdapter());
-      // await Hive.openBox<Vocab>('vocabBox');
-      // await Hive.openBox<dynamic>('cacheBox');
 
       LoggerService().i("Application Started"); // Example usage
 

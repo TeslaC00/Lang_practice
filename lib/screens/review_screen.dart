@@ -22,7 +22,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   void initState() {
     super.initState();
-    // index = 0;
     _loadDues();
   }
 

@@ -40,18 +40,6 @@ class SentenceVocab extends Vocab {
     return 'Sentence: "$sentence"\nAnswer: "$answer"\n${super.displaySummary()}';
   }
 
-  // @override
-  // Future<void> add() async {
-  //   // This will save the Vocab object including its meta field
-  //   // await super.addToBox();
-  // }
-  //
-  // @override
-  // Future<void> save() async {
-  //   // This will save the Vocab object including its meta field
-  //   // await super.save();
-  // }
-
   @override
   String toString() {
     // Accessing meta for level and nextReview

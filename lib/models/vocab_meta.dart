@@ -1,31 +1,11 @@
-import 'package:hive/hive.dart';
-
-part 'vocab_meta.g.dart';
-
-@HiveType(typeId: 0) // Ensure this typeId is unique
-class VocabMeta extends HiveObject {
-  @HiveField(0)
+class VocabMeta {
   int level;
-
-  @HiveField(1)
   DateTime nextReview;
-
-  @HiveField(2)
   bool isNew;
-
-  @HiveField(3)
   int totalCorrectTimes;
-
-  @HiveField(4)
   int totalWrongTimes;
-
-  @HiveField(5)
   int correctTimesCounter;
-
-  @HiveField(6)
   int wrongTimesCounter;
-
-  @HiveField(7)
   DateTime? lastReview;
 
   VocabMeta({

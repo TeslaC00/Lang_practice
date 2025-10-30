@@ -42,17 +42,6 @@ class TimeVocab extends Vocab {
     return 'Time: $timeWord ($readings) at $timeString\n${super.displaySummary()}';
   }
 
-  // TODO: remove these functions
-  // @override
-  // Future<void> add() async {
-  //   // await super.addToBox();
-  // }
-  //
-  // @override
-  // Future<void> save() async {
-  //   // await super.save();
-  // }
-
   @override
   String toString() {
     // Relies on Vocab.toString() for meta details

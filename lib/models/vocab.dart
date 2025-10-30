@@ -60,13 +60,6 @@ abstract class Vocab {
 
   Widget buildReviewWidget();
 
-  // void add();
-
-  // Future<void> addToBox() async {
-  //   final box = Hive.box<Vocab>('vocabBox');
-  //   await box.add(this);
-  // }
-
   String displayTitle() {
     return type.name;
   }
