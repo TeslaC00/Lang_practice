@@ -142,12 +142,11 @@ class $VocabsTable extends Vocabs with TableInfo<$VocabsTable, VocabEntry> {
   static const VerificationMeta _verbFormsMeta =
       const VerificationMeta('verbForms');
   @override
-  late final GeneratedColumnWithTypeConverter<HashMap<String, VerbForm>?,
-      String> verbForms = GeneratedColumn<String>(
-          'verb_forms', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false)
-      .withConverter<HashMap<String, VerbForm>?>(
-          $VocabsTable.$converterverbFormsn);
+  late final GeneratedColumnWithTypeConverter<Map<String, VerbForm>?, String>
+      verbForms = GeneratedColumn<String>('verb_forms', aliasedName, true,
+              type: DriftSqlType.string, requiredDuringInsert: false)
+          .withConverter<Map<String, VerbForm>?>(
+              $VocabsTable.$converterverbFormsn);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -292,6 +291,10 @@ class $VocabsTable extends Vocabs with TableInfo<$VocabsTable, VocabEntry> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {type, primaryText},
+      ];
+  @override
   VocabEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VocabEntry(
@@ -370,10 +373,10 @@ class $VocabsTable extends Vocabs with TableInfo<$VocabsTable, VocabEntry> {
       const VerbFormConverter();
   static TypeConverter<VerbForm?, String?> $converterverbPlainn =
       NullAwareTypeConverter.wrap($converterverbPlain);
-  static TypeConverter<HashMap<String, VerbForm>, String> $converterverbForms =
+  static TypeConverter<Map<String, VerbForm>, String> $converterverbForms =
       const VerbMapConverter();
-  static TypeConverter<HashMap<String, VerbForm>?, String?>
-      $converterverbFormsn = NullAwareTypeConverter.wrap($converterverbForms);
+  static TypeConverter<Map<String, VerbForm>?, String?> $converterverbFormsn =
+      NullAwareTypeConverter.wrap($converterverbForms);
 }
 
 class VocabEntry extends DataClass implements Insertable<VocabEntry> {
@@ -398,7 +401,7 @@ class VocabEntry extends DataClass implements Insertable<VocabEntry> {
   final List<String>? timeReadings;
   final String? timeString;
   final VerbForm? verbPlain;
-  final HashMap<String, VerbForm>? verbForms;
+  final Map<String, VerbForm>? verbForms;
   const VocabEntry(
       {required this.id,
       required this.primaryText,
@@ -551,8 +554,7 @@ class VocabEntry extends DataClass implements Insertable<VocabEntry> {
       timeReadings: serializer.fromJson<List<String>?>(json['timeReadings']),
       timeString: serializer.fromJson<String?>(json['timeString']),
       verbPlain: serializer.fromJson<VerbForm?>(json['verbPlain']),
-      verbForms:
-          serializer.fromJson<HashMap<String, VerbForm>?>(json['verbForms']),
+      verbForms: serializer.fromJson<Map<String, VerbForm>?>(json['verbForms']),
     );
   }
   @override
@@ -580,7 +582,7 @@ class VocabEntry extends DataClass implements Insertable<VocabEntry> {
       'timeReadings': serializer.toJson<List<String>?>(timeReadings),
       'timeString': serializer.toJson<String?>(timeString),
       'verbPlain': serializer.toJson<VerbForm?>(verbPlain),
-      'verbForms': serializer.toJson<HashMap<String, VerbForm>?>(verbForms),
+      'verbForms': serializer.toJson<Map<String, VerbForm>?>(verbForms),
     };
   }
 
@@ -606,8 +608,7 @@ class VocabEntry extends DataClass implements Insertable<VocabEntry> {
           Value<List<String>?> timeReadings = const Value.absent(),
           Value<String?> timeString = const Value.absent(),
           Value<VerbForm?> verbPlain = const Value.absent(),
-          Value<HashMap<String, VerbForm>?> verbForms =
-              const Value.absent()}) =>
+          Value<Map<String, VerbForm>?> verbForms = const Value.absent()}) =>
       VocabEntry(
         id: id ?? this.id,
         primaryText: primaryText ?? this.primaryText,
@@ -784,7 +785,7 @@ class VocabsCompanion extends UpdateCompanion<VocabEntry> {
   final Value<List<String>?> timeReadings;
   final Value<String?> timeString;
   final Value<VerbForm?> verbPlain;
-  final Value<HashMap<String, VerbForm>?> verbForms;
+  final Value<Map<String, VerbForm>?> verbForms;
   const VocabsCompanion({
     this.id = const Value.absent(),
     this.primaryText = const Value.absent(),
@@ -915,7 +916,7 @@ class VocabsCompanion extends UpdateCompanion<VocabEntry> {
       Value<List<String>?>? timeReadings,
       Value<String?>? timeString,
       Value<VerbForm?>? verbPlain,
-      Value<HashMap<String, VerbForm>?>? verbForms}) {
+      Value<Map<String, VerbForm>?>? verbForms}) {
     return VocabsCompanion(
       id: id ?? this.id,
       primaryText: primaryText ?? this.primaryText,
@@ -1418,7 +1419,7 @@ typedef $$VocabsTableCreateCompanionBuilder = VocabsCompanion Function({
   Value<List<String>?> timeReadings,
   Value<String?> timeString,
   Value<VerbForm?> verbPlain,
-  Value<HashMap<String, VerbForm>?> verbForms,
+  Value<Map<String, VerbForm>?> verbForms,
 });
 typedef $$VocabsTableUpdateCompanionBuilder = VocabsCompanion Function({
   Value<int> id,
@@ -1442,7 +1443,7 @@ typedef $$VocabsTableUpdateCompanionBuilder = VocabsCompanion Function({
   Value<List<String>?> timeReadings,
   Value<String?> timeString,
   Value<VerbForm?> verbPlain,
-  Value<HashMap<String, VerbForm>?> verbForms,
+  Value<Map<String, VerbForm>?> verbForms,
 });
 
 class $$VocabsTableFilterComposer
@@ -1531,8 +1532,8 @@ class $$VocabsTableFilterComposer
           column: $table.verbPlain,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
-  ColumnWithTypeConverterFilters<HashMap<String, VerbForm>?,
-          HashMap<String, VerbForm>, String>
+  ColumnWithTypeConverterFilters<Map<String, VerbForm>?, Map<String, VerbForm>,
+          String>
       get verbForms => $composableBuilder(
           column: $table.verbForms,
           builder: (column) => ColumnWithTypeConverterFilters(column));
@@ -1696,7 +1697,7 @@ class $$VocabsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<VerbForm?, String> get verbPlain =>
       $composableBuilder(column: $table.verbPlain, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<HashMap<String, VerbForm>?, String>
+  GeneratedColumnWithTypeConverter<Map<String, VerbForm>?, String>
       get verbForms => $composableBuilder(
           column: $table.verbForms, builder: (column) => column);
 }
@@ -1745,7 +1746,7 @@ class $$VocabsTableTableManager extends RootTableManager<
             Value<List<String>?> timeReadings = const Value.absent(),
             Value<String?> timeString = const Value.absent(),
             Value<VerbForm?> verbPlain = const Value.absent(),
-            Value<HashMap<String, VerbForm>?> verbForms = const Value.absent(),
+            Value<Map<String, VerbForm>?> verbForms = const Value.absent(),
           }) =>
               VocabsCompanion(
             id: id,
@@ -1793,7 +1794,7 @@ class $$VocabsTableTableManager extends RootTableManager<
             Value<List<String>?> timeReadings = const Value.absent(),
             Value<String?> timeString = const Value.absent(),
             Value<VerbForm?> verbPlain = const Value.absent(),
-            Value<HashMap<String, VerbForm>?> verbForms = const Value.absent(),
+            Value<Map<String, VerbForm>?> verbForms = const Value.absent(),
           }) =>
               VocabsCompanion.insert(
             id: id,

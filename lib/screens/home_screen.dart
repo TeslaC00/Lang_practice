@@ -18,20 +18,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int dueCount = 0;
+  // int dueCount = 0;
+
+  void _onDueCountChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   Future<void> _updateDues() async {
     await SRS.getDailyDues();
-    if (!mounted) return;
-    setState(() {
-      dueCount = SRS.dueCount.value;
-    });
+    // if (!mounted) return;
+    // setState(() {
+    //   dueCount = SRS.dueCount.value;
+    // });
   }
 
   @override
   void initState() {
     super.initState();
+    SRS.dueCount.addListener(_onDueCountChanged);
     _updateDues();
+  }
+
+  @override
+  void dispose() {
+    SRS.dueCount.removeListener(_onDueCountChanged);
+    super.dispose();
   }
 
   @override
@@ -42,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () async => _updateDues(),
+              onRefresh: _updateDues,
               child: SingleChildScrollView(
                 // needed for refresh indicator
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -62,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(fontSize: 18),
                             ),
                             Text(
-                              '$dueCount',
+                              '${SRS.dueCount.value}',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,

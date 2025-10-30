@@ -54,7 +54,10 @@ class SRS {
 
     // 2. Save to Drift DB
     final db = AppDatabase.instance;
-    await db.update(db.vocabs).replace(VocabMapper.vocabToCompanion(v));
+    final companion = VocabMapper.vocabToCompanion(
+      v,
+    ).copyWith(id: drift.Value(v.id!));
+    await db.update(db.vocabs).replace(companion);
 
     // 3. Remove from today's Drift cache
     await (db.delete(
@@ -101,7 +104,10 @@ class SRS {
 
     // 2. Save to Drift DB
     final db = AppDatabase.instance;
-    await db.update(db.vocabs).replace(VocabMapper.vocabToCompanion(v));
+    final companion = VocabMapper.vocabToCompanion(
+      v,
+    ).copyWith(id: drift.Value(v.id!));
+    await db.update(db.vocabs).replace(companion);
 
     // 3. Remove from today's Drift cache
     await (db.delete(
@@ -122,7 +128,7 @@ class SRS {
     // dueCount.value = cache.values.whereType<int>().length;
   }
 
-  static Future<void> getDailyDues({int maxReviewPerDay = 30}) async {
+  static Future<void> getDailyDues({int maxReviewPerDay = 5}) async {
     final now = DateTime.now();
     // final box = Hive.box<Vocab>('vocabBox');
     // final cache = Hive.box<dynamic>('cacheBox');
@@ -222,7 +228,7 @@ class SRS {
     // dueCount.value = result.length;
   }
 
-  static Future<List<Vocab>> getDues({int maxReviewPerDay = 30}) async {
+  static Future<List<Vocab>> getDues({int maxReviewPerDay = 5}) async {
     await getDailyDues(maxReviewPerDay: maxReviewPerDay);
 
     // final box = Hive.box<Vocab>('vocabBox');

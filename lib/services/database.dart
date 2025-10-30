@@ -131,21 +131,22 @@ class VerbFormConverter extends TypeConverter<VerbForm, String> {
   }
 }
 
-class VerbMapConverter
-    extends TypeConverter<HashMap<String, VerbForm>, String> {
+class VerbMapConverter extends TypeConverter<Map<String, VerbForm>, String> {
   const VerbMapConverter();
 
   @override
-  HashMap<String, VerbForm> fromSql(String fromDb) {
+  Map<String, VerbForm> fromSql(String fromDb) {
+    if (fromDb.isEmpty) {
+      return {};
+    }
     final decodedMap = jsonDecode(fromDb) as Map<String, dynamic>;
-    final verbFromMap = decodedMap.map((key, value) {
+    return decodedMap.map((key, value) {
       return MapEntry(key, VerbForm.fromJson(value as Map<String, dynamic>));
     });
-    return HashMap.from(verbFromMap);
   }
 
   @override
-  String toSql(HashMap<String, VerbForm> value) {
+  String toSql(Map<String, VerbForm> value) {
     final jsonReadyMap = value.map((key, verbForm) {
       return MapEntry(key, verbForm.toJson());
     });

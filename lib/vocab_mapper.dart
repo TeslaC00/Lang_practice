@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:lang_practice/services/database.dart';
 
 import 'models/vocab.dart';
@@ -56,7 +54,7 @@ class VocabMapper {
         final v = vocab as VerbVocab;
         return companion.copyWith(
           verbPlain: drift.Value(v.plainVerb),
-          verbForms: drift.Value(v.verbForms as HashMap<String, VerbForm>),
+          verbForms: drift.Value(v.verbForms),
           primaryText: drift.Value(v.plainVerb.verbWord),
         );
     }

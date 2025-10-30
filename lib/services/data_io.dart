@@ -74,6 +74,14 @@ Future<void> importData(BuildContext context) async {
 
     // Save to Database
     final db = AppDatabase.instance;
+
+    // 1. Get count BEFORE
+    final countQuery = db.selectOnly(db.vocabs)
+      ..addColumns([db.vocabs.id.count()]);
+    final countBefore =
+        (await countQuery.getSingle()).read(db.vocabs.id.count()) ?? 0;
+
+    // 2. Prepare companions (your existing logic)
     final companions = <VocabsCompanion>[];
 
     for (final vocab in vocabs) {
@@ -81,6 +89,7 @@ Future<void> importData(BuildContext context) async {
       companions.add(VocabMapper.vocabToCompanion(vocab));
     }
 
+    // 3. Run the batch insert (your existing logic)
     await db.batch((batch) {
       batch.insertAll(
         db.vocabs,
@@ -88,6 +97,15 @@ Future<void> importData(BuildContext context) async {
         mode: drift.InsertMode.insertOrIgnore,
       );
     });
+
+    // 4. Get count AFTER
+    final countAfter =
+        (await countQuery.getSingle()).read(db.vocabs.id.count()) ?? 0;
+
+    // 5. Calculate the results
+    final totalInFile = vocabs.length;
+    final itemsAdded = countAfter - countBefore;
+    final itemsIgnored = totalInFile - itemsAdded;
 
     // Clear cache to get review of new data
     // await Hive.box<dynamic>('cacheBox').clear();
@@ -97,9 +115,9 @@ Future<void> importData(BuildContext context) async {
     if (context.mounted) _hideProgressSnackBar(context);
 
     LoggerService().i(
-      "Data imported successfully. Added ${companions.length} new vocabs, From ${vocabs.length} total. "
-      "Ignore duplicate vocabs ${vocabs.length - companions.length}.",
-    ); // Added log
+      "Data imported successfully. Added $itemsAdded new vocabs. "
+      "Ignored $itemsIgnored duplicates (from $totalInFile total in file).",
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

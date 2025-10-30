@@ -22,7 +22,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   void initState() {
     super.initState();
-    index = 0;
+    // index = 0;
     _loadDues();
   }
 
@@ -33,6 +33,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     setState(() {
       due = result;
+      index = 0;
       if (due.isEmpty) {
         _current = null;
       } else {
@@ -60,7 +61,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               const Text('No cards due right now.'),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: _nextQuestion,
+                onPressed: _loadDues,
                 child: const Text('Refresh'),
               ),
             ],
@@ -76,7 +77,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             KeyedSubtree(
-              key: ValueKey(_current!.key),
+              key: ValueKey(_current!.id),
               child: _current!.buildReviewWidget(),
             ),
             const SizedBox(width: 8),
