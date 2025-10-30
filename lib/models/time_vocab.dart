@@ -9,175 +9,22 @@ class TimeVocab extends Vocab {
   @HiveField(5)
   String timeString; // Stores a fixed time for HH:MM part.
 
-  late TextEditingController _timeWordController;
-  late TextEditingController _readingController;
-  late TextEditingController _timeValueController; // For form input
-  late TextEditingController _notesController; // Added for notes
-
-  late TextEditingController _readingAnswerController;
-  late TextEditingController _timeValueAnswerController; // For review input
-
-  String _readingFeedback = '';
-  String _timeValueFeedback = '';
-
   TimeVocab({
     required this.timeWord,
     required this.readings,
     required this.timeString,
     super.meta,
     super.notes,
-  }) : super(type: VocabType.time) {
-    _timeWordController = TextEditingController(text: timeWord);
-    _readingController = TextEditingController(text: readings.join(', '));
-    _timeValueController = TextEditingController(text: timeString);
-    _notesController = TextEditingController(
-      text: notes,
-    ); // Initialize notes controller
-    _readingAnswerController = TextEditingController();
-    _timeValueAnswerController = TextEditingController();
+  }) : super(type: VocabType.time);
+
+  @override
+  Widget buildFormWidget({bool isNew = false}) {
+    return TimeVocabForm(vocab: this, isNew: isNew);
   }
 
   @override
-  void dispose() {
-    _timeWordController.dispose();
-    _readingController.dispose();
-    _timeValueController.dispose();
-    _notesController.dispose(); // Dispose notes controller
-    _readingAnswerController.dispose();
-    _timeValueAnswerController.dispose();
-    // if Vocab has a dispose, call super.dispose();
-  }
-
-  // Helper method for review logic (adapted from WordVocab)
-  void _submitAnswerLogic(
-    TextEditingController controller,
-    List<String> correctAnswers,
-    Function(String) feedbackSetter,
-  ) {
-    final userAnswer = controller.text.trim().toLowerCase();
-    if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
-      feedbackSetter("Correct!");
-      SRS.markCorrect(this);
-    } else {
-      if (userAnswer.isEmpty) {
-        feedbackSetter("Please enter an answer.");
-      } else {
-        feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
-        SRS.markWrong(this);
-      }
-    }
-  }
-
-  void _submitTimeAnswerLogic(
-    TextEditingController controller,
-    String correctTimeString,
-    Function(String) feedbackSetter,
-  ) {
-    final userAnswerString = controller.text.trim();
-
-    if (userAnswerString == correctTimeString) {
-      feedbackSetter("Correct!");
-      SRS.markCorrect(this); // Assuming marking correct for the whole item
-    } else {
-      feedbackSetter("Incorrect. Correct: $correctTimeString");
-      SRS.markWrong(this); // Assuming marking wrong for the whole item
-    }
-  }
-
-  @override
-  List<Widget> buildFormFields(StateSetter setState) {
-    return [
-      _LabeledField('Time Word (e.g., 7:30 AM, 今)', _timeWordController),
-      const SizedBox(height: 10),
-      _LabeledField('Reading (e.g., しちじはん, いま)', _readingController),
-      const SizedBox(height: 10),
-      _LabeledField('Time Value (HH:mm e.g., 07:30)', _timeValueController),
-      const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 3),
-      // Added notes field
-    ];
-  }
-
-  @override
-  List<Widget> buildReviewFields(StateSetter setState) {
-    return [
-      Text(
-        timeWord,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-      if (notes.isNotEmpty) // Display notes if they exist
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            "Notes: $notes",
-            style: TextStyle(fontStyle: FontStyle.italic),
-          ),
-        ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _readingAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Give Reading',
-          border: OutlineInputBorder(),
-          hintText: 'Enter reading in hiragana/katakana',
-        ),
-        onSubmitted: (_) => _submitAnswerLogic(
-          _readingAnswerController,
-          readings, // reading is a single string
-          (f) => setState(() => _readingFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitAnswerLogic(
-          _readingAnswerController,
-          readings,
-          (f) => setState(() => _readingFeedback = f),
-        ),
-        child: const Text("Check Reading"),
-      ),
-      const SizedBox(height: 5),
-      if (_readingFeedback.isNotEmpty)
-        Text(
-          _readingFeedback,
-          style: TextStyle(
-            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _timeValueAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Give Time (HH:MM)',
-          border: OutlineInputBorder(),
-          hintText: 'Enter time e.g., 07:30',
-        ),
-        keyboardType: TextInputType.datetime,
-        onSubmitted: (_) => _submitTimeAnswerLogic(
-          _timeValueAnswerController,
-          timeString,
-          (f) => setState(() => _timeValueFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitTimeAnswerLogic(
-          _timeValueAnswerController,
-          timeString,
-          (f) => setState(() => _timeValueFeedback = f),
-        ),
-        child: const Text("Check Time Value"),
-      ),
-      const SizedBox(height: 5),
-      if (_timeValueFeedback.isNotEmpty)
-        Text(
-          _timeValueFeedback,
-          style: TextStyle(
-            color: _timeValueFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-    ];
+  Widget buildReviewWidget() {
+    return TimeVocabReview(vocab: this);
   }
 
   @override
@@ -200,29 +47,11 @@ class TimeVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    timeWord = _timeWordController.text;
-    readings = _readingController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    timeString = _timeValueController.text;
-    notes = _notesController.text; // Get notes from controller
-    // meta is already part of the object, managed by Vocab class
     await super.addToBox();
   }
 
   @override
   Future<void> save() async {
-    timeWord = _timeWordController.text;
-    readings = _readingController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    timeString = _timeValueController.text;
-    notes = _notesController.text; // Get notes from controller
-    // meta is already part of the object, managed by Vocab class
     await super.save();
   }
 

@@ -54,23 +54,7 @@ class _AddEditVocabScreenState extends State<AddEditVocabScreen> {
 
   Widget _buildEditForm() {
     _logger.d("_AddEditVocabScreenState._buildEditForm entry");
-    return Column(
-      children: [
-        ..._vocab.buildFormFields(setState),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: () {
-            _logger.i(
-              "Save button pressed (Edit mode). Vocab Type: ${_vocab.type.name}",
-            );
-            _vocab.save();
-            Navigator.pop(context);
-            _logger.d("Navigator.pop called after saving (Edit mode)");
-          },
-          child: const Text("Save"),
-        ),
-      ],
-    );
+    return _vocab.buildFormWidget(isNew: false);
   }
 
   Widget _buildAddForm() {
@@ -95,19 +79,7 @@ class _AddEditVocabScreenState extends State<AddEditVocabScreen> {
           decoration: const InputDecoration(labelText: "Select Vocab Type"),
         ),
         const SizedBox(height: 16),
-        ..._vocab.buildFormFields(setState),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: () {
-            _logger.i(
-              "Save button pressed (Add mode). Vocab type: ${_vocab.type}",
-            );
-            _vocab.add();
-            Navigator.pop(context);
-            _logger.d("Navigator.pop called after saving (Add mode)");
-          },
-          child: const Text("Save"),
-        ),
+        _vocab.buildFormWidget(isNew: true),
       ],
     );
   }

@@ -30,7 +30,7 @@ class SRS {
 
   // Don't increase vocab level for each correct answer
   static Future<void> markCorrect(Vocab v) async {
-    v.dispose();
+    // v.dispose();
     v.meta.correctTimesCounter++;
     v.meta.totalCorrectTimes++;
     v.meta.lastReview = DateTime.now();
@@ -56,7 +56,7 @@ class SRS {
   }
 
   static Future<void> markWrong(Vocab v) async {
-    v.dispose();
+    // v.dispose();
     v.meta.wrongTimesCounter++;
     v.meta.totalWrongTimes++;
     v.meta.lastReview = DateTime.now();

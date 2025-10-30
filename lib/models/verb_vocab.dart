@@ -8,180 +8,21 @@ class VerbVocab extends Vocab {
   @HiveField(4)
   Map<String, VerbForm> verbForms; // Key is the form name e.g., "Past Polite"
 
-  late TextEditingController _plainVerbWordController;
-  late TextEditingController _plainVerbReadingController;
-  late TextEditingController _plainVerbMeaningController;
-  late TextEditingController _notesController;
-
-  // Review screen controllers
-  late TextEditingController _readingAnswerController;
-  late TextEditingController _meaningAnswerController;
-
-  String _readingFeedback = '';
-  String _meaningFeedback = '';
-
   VerbVocab({
     required this.plainVerb,
     required this.verbForms,
     super.meta,
     super.notes,
-  }) : super(type: VocabType.verb) {
-    _plainVerbWordController = TextEditingController(text: plainVerb.verbWord);
-    _plainVerbReadingController = TextEditingController(
-      text: plainVerb.readings.join(', '),
-    );
-    _plainVerbMeaningController = TextEditingController(
-      text: plainVerb.meanings.join(', '),
-    );
-    _notesController = TextEditingController(text: notes);
-    _readingAnswerController = TextEditingController();
-    _meaningAnswerController = TextEditingController();
+  }) : super(type: VocabType.verb);
+
+  @override
+  Widget buildFormWidget({bool isNew = false}) {
+    return VerbVocabForm(vocab: this, isNew: isNew);
   }
 
   @override
-  void dispose() {
-    _plainVerbWordController.dispose();
-    _plainVerbReadingController.dispose();
-    _plainVerbMeaningController.dispose();
-    _notesController.dispose();
-    _readingAnswerController.dispose();
-    _meaningAnswerController.dispose();
-  }
-
-  void _submitReviewAnswerLogic(
-    TextEditingController controller,
-    List<String> correctAnswers,
-    Function(String) feedbackSetter,
-  ) {
-    final userAnswer = controller.text.trim().toLowerCase();
-    // SRS interaction will now use this.meta
-    if (correctAnswers
-        .map((ans) => ans.trim().toLowerCase())
-        .contains(userAnswer)) {
-      feedbackSetter("Correct!");
-      SRS.markCorrect(this);
-    } else {
-      if (userAnswer.isEmpty) {
-        feedbackSetter("Please enter an answer.");
-      } else {
-        feedbackSetter("Incorrect. Correct: $correctAnswers");
-        SRS.markWrong(this);
-      }
-    }
-  }
-
-  @override
-  List<Widget> buildFormFields(StateSetter setState) {
-    List<Widget> formWidgets = [
-      _LabeledField('Plain Verb Word (e.g., 食べる)', _plainVerbWordController),
-      const SizedBox(height: 10),
-      _LabeledField(
-        'Plain Verb Reading (e.g., たべる)',
-        _plainVerbReadingController,
-      ),
-      const SizedBox(height: 10),
-      _LabeledField(
-        'Plain Verb Meaning(s) (e.g., to eat, to consume - comma separated)',
-        _plainVerbMeaningController,
-      ),
-      const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 3),
-      const SizedBox(height: 10),
-      const Text('Verb Forms:', style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 10),
-    ];
-
-    verbForms.forEach((key, verbForm) {
-      formWidgets.add(
-        Padding(
-          padding: const EdgeInsets.only(left: 8.0, top: 4.0),
-          child: Text('$key: ${verbForm.displaySummary()}'),
-        ),
-      );
-    });
-
-    return formWidgets;
-  }
-
-  @override
-  List<Widget> buildReviewFields(StateSetter setState) {
-    return [
-      Text(
-        plainVerb.verbWord,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-      if (notes.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            "Notes: $notes",
-            style: TextStyle(fontStyle: FontStyle.italic),
-          ),
-        ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _readingAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Reading of Plain Form',
-          border: OutlineInputBorder(),
-          hintText: 'Enter reading in hiragana/katakana',
-        ),
-        onSubmitted: (_) => _submitReviewAnswerLogic(
-          _readingAnswerController,
-          plainVerb.readings,
-          (f) => setState(() => _readingFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitReviewAnswerLogic(
-          _readingAnswerController,
-          plainVerb.readings,
-          (f) => setState(() => _readingFeedback = f),
-        ),
-        child: const Text("Check Reading"),
-      ),
-      const SizedBox(height: 5),
-      if (_readingFeedback.isNotEmpty)
-        Text(
-          _readingFeedback,
-          style: TextStyle(
-            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _meaningAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Meaning of Plain Form',
-          border: OutlineInputBorder(),
-          hintText: 'Enter meaning in English',
-        ),
-        onSubmitted: (_) => _submitReviewAnswerLogic(
-          _meaningAnswerController,
-          plainVerb.meanings,
-          (f) => setState(() => _meaningFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitReviewAnswerLogic(
-          _meaningAnswerController,
-          plainVerb.meanings,
-          (f) => setState(() => _meaningFeedback = f),
-        ),
-        child: const Text("Check Meaning"),
-      ),
-      const SizedBox(height: 5),
-      if (_meaningFeedback.isNotEmpty)
-        Text(
-          _meaningFeedback,
-          style: TextStyle(
-            color: _meaningFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-    ];
+  Widget buildReviewWidget() {
+    return VerbVocabReview(vocab: this);
   }
 
   @override
@@ -210,35 +51,11 @@ class VerbVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    plainVerb.verbWord = _plainVerbWordController.text.trim();
-    plainVerb.readings = _plainVerbReadingController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    plainVerb.meanings = _plainVerbMeaningController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    notes = _notesController.text.trim();
     await super.addToBox();
   }
 
   @override
   Future<void> save() async {
-    plainVerb.verbWord = _plainVerbWordController.text.trim();
-    plainVerb.readings = _plainVerbReadingController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    plainVerb.meanings = _plainVerbMeaningController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    notes = _notesController.text.trim();
     await super.save();
   }
 

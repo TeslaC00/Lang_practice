@@ -9,159 +9,22 @@ class WordVocab extends Vocab {
   @HiveField(5)
   List<String> meanings;
 
-  late TextEditingController _wordController;
-  late TextEditingController _meaningsController;
-  late TextEditingController _readingsController;
-  late TextEditingController _readingAnswerController;
-  late TextEditingController _meaningAnswerController;
-  late TextEditingController _notesController; // Added notes controller
-
-  String _readingFeedback = '';
-  String _meaningFeedback = '';
-
   WordVocab({
     required this.word,
     required this.readings,
     required this.meanings,
     super.meta,
     super.notes,
-  }) : super(type: VocabType.word) {
-    _wordController = TextEditingController(text: word);
-    _meaningsController = TextEditingController(text: meanings.join(', '));
-    _readingsController = TextEditingController(text: readings.join(', '));
-    _readingAnswerController = TextEditingController();
-    _meaningAnswerController = TextEditingController();
-    _notesController = TextEditingController(
-      text: notes,
-    ); // Initialize notes controller
+  }) : super(type: VocabType.word);
+
+  @override
+  Widget buildFormWidget({bool isNew = false}) {
+    return WordVocabForm(vocab: this, isNew: isNew);
   }
 
   @override
-  void dispose() {
-    _wordController.dispose();
-    _meaningsController.dispose();
-    _readingsController.dispose();
-    _readingAnswerController.dispose();
-    _meaningAnswerController.dispose();
-    _notesController.dispose(); // Dispose notes controller
-    // super.dispose(); // If Vocab base class had a dispose method.
-  }
-
-  void _submitAnswerLogic(
-    TextEditingController controller,
-    List<String> correctAnswers,
-    Function(String) feedbackSetter,
-  ) {
-    final userAnswer = controller.text.trim().toLowerCase();
-    if (correctAnswers.any((ans) => ans.trim().toLowerCase() == userAnswer)) {
-      feedbackSetter("Correct!");
-      SRS.markCorrect(this);
-    } else {
-      if (userAnswer.isEmpty) {
-        feedbackSetter("Please enter an answer.");
-      } else {
-        feedbackSetter("Incorrect. Correct: ${correctAnswers.join(', ')}");
-        SRS.markWrong(this);
-      }
-    }
-  }
-
-  @override
-  List<Widget> buildFormFields(StateSetter setState) {
-    return [
-      _LabeledField('Word (kanji/word)', _wordController),
-      const SizedBox(height: 10),
-      _LabeledField(
-        'Readings (ひらがな etc., comma separated)',
-        _readingsController,
-      ),
-      const SizedBox(height: 10),
-      _LabeledField('Meanings/English (comma separated)', _meaningsController),
-      const SizedBox(height: 10),
-      _LabeledField('Notes', _notesController, maxLines: 3),
-      // Added notes field
-    ];
-  }
-
-  @override
-  List<Widget> buildReviewFields(StateSetter setState) {
-    return [
-      Text(
-        word,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _readingAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Give Reading',
-          border: OutlineInputBorder(),
-          hintText: 'Enter reading in hiragana/katakana',
-        ),
-        onSubmitted: (_) => _submitAnswerLogic(
-          _readingAnswerController,
-          readings,
-          (f) => setState(() => _readingFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitAnswerLogic(
-          _readingAnswerController,
-          readings,
-          (f) => setState(() => _readingFeedback = f),
-        ),
-        child: const Text("Check Reading"),
-      ),
-      const SizedBox(height: 5),
-      if (_readingFeedback.isNotEmpty)
-        Text(
-          _readingFeedback,
-          style: TextStyle(
-            color: _readingFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-      const SizedBox(height: 10),
-      TextField(
-        controller: _meaningAnswerController,
-        decoration: InputDecoration(
-          labelText: 'Give Meaning',
-          border: OutlineInputBorder(),
-          hintText: 'Enter meaning in English',
-        ),
-        onSubmitted: (_) => _submitAnswerLogic(
-          _meaningAnswerController,
-          meanings,
-          (f) => setState(() => _meaningFeedback = f),
-        ),
-      ),
-      const SizedBox(height: 5),
-      FilledButton(
-        onPressed: () => _submitAnswerLogic(
-          _meaningAnswerController,
-          meanings,
-          (f) => setState(() => _meaningFeedback = f),
-        ),
-        child: const Text("Check Meaning"),
-      ),
-      const SizedBox(height: 5),
-      if (_meaningFeedback.isNotEmpty)
-        Text(
-          _meaningFeedback,
-          style: TextStyle(
-            color: _meaningFeedback == "Correct!" ? Colors.green : Colors.red,
-          ),
-        ),
-      if (notes.isNotEmpty) // Display notes if they exist
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            "Notes: $notes",
-            style: TextStyle(fontStyle: FontStyle.italic),
-          ),
-        ),
-    ];
+  Widget buildReviewWidget() {
+    return WordVocabReview(vocab: this);
   }
 
   @override
@@ -191,35 +54,11 @@ class WordVocab extends Vocab {
 
   @override
   Future<void> add() async {
-    word = _wordController.text;
-    readings = _readingsController.text
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-    meanings = _meaningsController.text
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-    notes = _notesController.text; // Update notes from controller
     await super.addToBox();
   }
 
   @override
   Future<void> save() async {
-    word = _wordController.text;
-    readings = _readingsController.text
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-    meanings = _meaningsController.text
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-    notes = _notesController.text; // Update notes from controller
     await super.save();
   }
 

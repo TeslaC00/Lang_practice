@@ -75,7 +75,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ..._current!.buildReviewFields(setState),
+            KeyedSubtree(
+              key: ValueKey(_current!.key),
+              child: _current!.buildReviewWidget(),
+            ),
             const SizedBox(width: 8),
             FilledButton.tonal(
               onPressed: _nextQuestion,

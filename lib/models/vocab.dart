@@ -8,19 +8,26 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:lang_practice/models/vocab_meta.dart';
 
-import '../services/srs.dart';
-
-part 'vocab.g.dart';
-
-part 'word_vocab.dart';
-
-part 'time_vocab.dart';
+import '../forms/sentence_vocab_form.dart';
+import '../forms/sentence_vocab_review.dart';
+import '../forms/time_vocab_form.dart';
+import '../forms/time_vocab_review.dart';
+import '../forms/verb_vocab_form.dart';
+import '../forms/verb_vocab_review.dart';
+import '../forms/word_vocab_form.dart';
+import '../forms/word_vocab_review.dart';
 
 part 'sentence_vocab.dart';
+
+part 'time_vocab.dart';
 
 part 'verb_form.dart';
 
 part 'verb_vocab.dart';
+
+part 'vocab.g.dart';
+
+part 'word_vocab.dart';
 
 @HiveType(typeId: 1)
 enum VocabType {
@@ -65,11 +72,9 @@ abstract class Vocab extends HiveObject {
     }
   }
 
-  List<Widget> buildFormFields(StateSetter setState);
+  Widget buildFormWidget({bool isNew = false});
 
-  List<Widget> buildReviewFields(StateSetter setState);
-
-  void dispose();
+  Widget buildReviewWidget();
 
   void add();
 
@@ -137,26 +142,5 @@ abstract class Vocab extends HiveObject {
       case VocabType.verb:
         return VerbVocab.fromJson(json);
     }
-  }
-}
-
-// Private helper widget, kept in the main file as it's used across different vocab forms.
-class _LabeledField extends StatelessWidget {
-  final String label;
-  final TextEditingController controller;
-  final int maxLines;
-
-  const _LabeledField(this.label, this.controller, {this.maxLines = 1});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-      ),
-    );
   }
 }
